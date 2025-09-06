@@ -67,7 +67,7 @@ export const generateShoppingListPDF = (items: ShoppingItem[], userName?: string
     doc.text(item.current_stock?.toString() || '-', 160, rowY);
     
     // Status
-    doc.text(item.is_completed ? '✓ Selesai' : '○ Pending', 180, rowY);
+    // doc.text(item.is_completed ? '✓ Selesai' : '○ Pending', 180, rowY);
     
     // Add notes if available
     if (item.notes && item.notes.trim()) {
