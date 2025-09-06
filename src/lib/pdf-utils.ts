@@ -12,9 +12,10 @@ export const generateShoppingListPDF = (items: ShoppingItem[], userName?: string
   // Add user info and date
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Dibuat oleh: ${userName || 'User'}`, 20, 35);
+  doc.text('Dibuat oleh: Toko Anjar', 20, 35);
   doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 20, 42);
   doc.text(`Total item: ${items.length}`, 20, 49);
+
   
   // Add table header
   doc.setFontSize(12);
