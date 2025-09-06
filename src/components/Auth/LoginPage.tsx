@@ -51,12 +51,8 @@ export const LoginPage = () => {
     setIsLoading(true);
     setError('');
 
-    let result;
-    if (formData.email.includes('@')) {
-      result = await signIn(formData.email, formData.password);
-    } else {
-      result = await signInWithUsername(formData.email, formData.password);
-    }
+    // Only use username login
+    const result = await signInWithUsername(formData.email, formData.password);
     
     if (result.error) {
       setError(result.error.message);
@@ -248,7 +244,7 @@ export const LoginPage = () => {
         <CardContent>
           <form onSubmit={handleSignIn} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Email atau Username</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
                 type="text"
@@ -257,7 +253,7 @@ export const LoginPage = () => {
                   ...formData, 
                   email: e.target.value 
                 })}
-                placeholder="email@contoh.com atau username"
+                placeholder="Masukkan username Anda"
                 required
               />
             </div>
