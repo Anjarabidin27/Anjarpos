@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { Clock } from 'lucide-react';
 
 export const LoginPage = () => {
   const { signIn, signInWithUsername, signUp, user, loading } = useAuth();
@@ -22,12 +23,20 @@ export const LoginPage = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     if (user && !loading) {
       navigate('/');
     }
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   if (loading) {
     return (
@@ -225,6 +234,16 @@ export const LoginPage = () => {
           <CardDescription>
             Masuk ke sistem kasir
           </CardDescription>
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              <span>{currentTime.toLocaleTimeString('id-ID')}</span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              <div className="font-medium">Jam Operasional Sistem:</div>
+              <div>06:00 - 17:00 WIB</div>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignIn} className="space-y-4">
