@@ -30,7 +30,7 @@ export const generateShoppingListPDF = (items: ShoppingItem[], userName?: string
   doc.text('Qty', 120, startY);
   doc.text('Unit', 140, startY);
   doc.text('Stok', 160, startY);
-  doc.text('Status', 180, startY);
+  
   
   // Draw header line
   doc.line(20, startY + 2, 190, startY + 2);
