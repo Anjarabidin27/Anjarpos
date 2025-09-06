@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core';
-import { nativeThermalPrinter } from './native-thermal-printer';
+import { mobileThermalPrinter } from './mobile-thermal-printer';
 
 // Simple Web Bluetooth types to avoid conflicts
 interface WebBluetoothDevice {
@@ -18,10 +18,10 @@ export class HybridThermalPrinter {
   private connectionHistory: Set<string> = new Set();
 
   async connect(): Promise<boolean> {
-    // Use native Bluetooth if running in Capacitor (mobile app)
+    // Use mobile Bluetooth if running in Capacitor (mobile app)
     if (Capacitor.isNativePlatform()) {
-      console.log('🤖 Using native Bluetooth (Capacitor app)');
-      return await nativeThermalPrinter.connect();
+      console.log('📱 Using mobile Bluetooth (Capacitor app)');
+      return await mobileThermalPrinter.scanAndConnect();
     }
 
     // Fallback to Web Bluetooth for browser
@@ -135,9 +135,9 @@ export class HybridThermalPrinter {
   }
 
   async print(text: string): Promise<boolean> {
-    // Use native printing if available
+    // Use mobile printing if available
     if (Capacitor.isNativePlatform()) {
-      return await nativeThermalPrinter.print(text);
+      return await mobileThermalPrinter.print(text);
     }
 
     // Fallback to web Bluetooth printing
@@ -197,7 +197,7 @@ export class HybridThermalPrinter {
 
   async disconnect(): Promise<void> {
     if (Capacitor.isNativePlatform()) {
-      await nativeThermalPrinter.disconnect();
+      await mobileThermalPrinter.disconnect();
     } else if (this.webDevice && this.webDevice.gatt?.connected) {
       await this.webDevice.gatt.disconnect();
       console.log('Disconnected from web printer');
@@ -209,7 +209,7 @@ export class HybridThermalPrinter {
 
   isConnected(): boolean {
     if (Capacitor.isNativePlatform()) {
-      return nativeThermalPrinter.isConnected();
+      return mobileThermalPrinter.isConnected();
     }
     return this.webDevice?.gatt?.connected || false;
   }
