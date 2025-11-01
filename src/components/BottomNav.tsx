@@ -23,12 +23,15 @@ const BottomNav = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center justify-center flex-1 h-full transition-all ${
+              className={`flex flex-col items-center justify-center flex-1 h-full transition-all relative ${
                 isActive
                   ? "text-primary"
-                  : "text-muted-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
+              {isActive && (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-primary rounded-full" />
+              )}
               <Icon className={`w-5 h-5 mb-1 transition-transform ${isActive ? "scale-110" : ""}`} />
               <span className={`text-[10px] font-medium ${isActive ? "font-semibold" : ""}`}>
                 {item.label}

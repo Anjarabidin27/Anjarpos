@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import busIcon from "@/assets/bus-icon.png";
+import malikaLogo from "@/assets/malika-logo.png";
 import { Eye, EyeOff, Fingerprint } from "lucide-react";
 import { biometricAuth } from "@/utils/biometricAuth";
 import { Capacitor } from "@capacitor/core";
@@ -113,8 +113,8 @@ const Auth = () => {
       <div className="w-full max-w-md">
         <div className="ios-card p-8 animate-slide-up backdrop-blur-xl bg-white/95">
           <div className="text-center mb-8">
-            <div className="flex justify-center mb-4 animate-float">
-              <img src={busIcon} alt="Malika Tour" className="w-24 h-24 object-contain" />
+            <div className="flex justify-center mb-6 animate-float">
+              <img src={malikaLogo} alt="Malika Tour" className="w-32 h-32 object-contain" />
             </div>
             <h1 className="text-3xl font-bold text-primary mb-2">Malika Tour</h1>
             <p className="text-muted-foreground">Manajemen Trip & Keuangan</p>
@@ -169,9 +169,9 @@ const Auth = () => {
                 />
                 <label
                   htmlFor="remember"
-                  className="text-sm text-muted-foreground cursor-pointer"
+                  className="text-sm text-muted-foreground cursor-pointer select-none"
                 >
-                  Ingat Saya {biometricAvailable && "(termasuk login biometrik)"}
+                  Ingat email saya
                 </label>
               </div>
             )}
@@ -181,11 +181,11 @@ const Auth = () => {
                 type="button"
                 onClick={handleBiometricLogin}
                 variant="outline"
-                className="w-full"
+                className="w-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5"
                 disabled={biometricLoading}
               >
-                <Fingerprint className="w-4 h-4 mr-2" />
-                {biometricLoading ? "Memverifikasi..." : "Login dengan Biometrik"}
+                <Fingerprint className="w-5 h-5 mr-2" />
+                {biometricLoading ? "Memverifikasi..." : "Login dengan Sidik Jari"}
               </Button>
             )}
 

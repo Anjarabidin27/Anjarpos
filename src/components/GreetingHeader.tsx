@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import busIcon from "@/assets/bus-icon.png";
+import malikaLogo from "@/assets/malika-logo.png";
 
 const GreetingHeader = () => {
   const [greeting, setGreeting] = useState("");
@@ -36,7 +36,7 @@ const GreetingHeader = () => {
           <p className="text-white/90 text-sm">Selamat datang di Malika Tour</p>
         </div>
         <div className="animate-float">
-          <img src={busIcon} alt="Bus" className="w-20 h-20 object-contain drop-shadow-lg" />
+          <img src={malikaLogo} alt="Malika Tour" className="w-20 h-20 object-contain drop-shadow-2xl" />
         </div>
       </div>
     </div>

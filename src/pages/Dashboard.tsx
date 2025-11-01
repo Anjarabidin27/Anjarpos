@@ -298,24 +298,24 @@ const Dashboard = () => {
       <div className="min-h-screen bg-background pb-20 safe-top">
         <div className="max-w-lg mx-auto p-4">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex-1">
-              <AnimatedHeader />
-              <GreetingHeader />
-            </div>
+            <AnimatedHeader />
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setShowReminder(true)}
-              className="relative rounded-2xl hover:bg-accent"
+              className="relative rounded-2xl hover:bg-accent transition-all hover:scale-105"
+              title="Pengingat"
             >
               <Bell className="w-6 h-6" />
               {activeRemindersCount > 0 && (
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full">
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full animate-pulse">
                   {activeRemindersCount}
                 </Badge>
               )}
             </Button>
           </div>
+          
+          <GreetingHeader />
 
           {currentTrip ? (
             <div className="mb-6">
@@ -369,15 +369,16 @@ const Dashboard = () => {
               <RundownAcara key={rundownKey} tripId={currentTrip.id} />
             </div>
           ) : (
-            <div className="ios-card p-6 mb-6 text-center">
-              <h2 className="text-lg font-semibold mb-4">Tidak Ada Trip Terdekat</h2>
-              <p className="text-muted-foreground">Ayo rencanakan trip impianmu!</p>
+            <div className="ios-card p-8 mb-6 text-center">
+              <div className="text-6xl mb-4">🗓️</div>
+              <h2 className="text-lg font-semibold mb-2">Belum Ada Trip</h2>
+              <p className="text-muted-foreground mb-6">Mulai rencanakan perjalanan impianmu sekarang!</p>
               <Button
                 onClick={() => setShowAddTrip(true)}
-                className="mt-4 gradient-primary text-white"
+                className="gradient-primary text-white"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Tambah Trip
+                Buat Trip Pertama
               </Button>
             </div>
           )}
