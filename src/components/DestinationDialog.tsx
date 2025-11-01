@@ -1,0 +1,197 @@
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+interface Destination {
+  id?: string;
+  nama_destinasi: string;
+  deskripsi: string;
+  kategori: string;
+  lokasi: string;
+  durasi_standar: number;
+  estimasi_biaya: number;
+}
+
+interface DestinationDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  destination?: Destination;
+  onSuccess: () => void;
+}
+
+const DestinationDialog = ({ open, onOpenChange, destination, onSuccess }: DestinationDialogProps) => {
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<Destination>({
+    nama_destinasi: "",
+    deskripsi: "",
+    kategori: "wisata",
+    lokasi: "",
+    durasi_standar: 60,
+    estimasi_biaya: 0,
+  });
+
+  useEffect(() => {
+    if (destination) {
+      setFormData(destination);
+    } else {
+      setFormData({
+        nama_destinasi: "",
+        deskripsi: "",
+        kategori: "wisata",
+        lokasi: "",
+        durasi_standar: 60,
+        estimasi_biaya: 0,
+      });
+    }
+  }, [destination, open]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      if (destination?.id) {
+        const { error } = await supabase
+          .from("destinations")
+          .update(formData)
+          .eq("id", destination.id);
+
+        if (error) throw error;
+        toast.success("Destinasi berhasil diupdate");
+      } else {
+        const { error } = await supabase
+          .from("destinations")
+          .insert({ ...formData, user_id: user.id });
+
+        if (error) throw error;
+        toast.success("Destinasi berhasil ditambahkan");
+      }
+
+      onSuccess();
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error("Error:", error);
+      toast.error("Gagal menyimpan destinasi");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{destination ? "Edit Destinasi" : "Tambah Destinasi"}</DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="nama_destinasi">Nama Destinasi</Label>
+            <Input
+              id="nama_destinasi"
+              value={formData.nama_destinasi}
+              onChange={(e) => setFormData({ ...formData, nama_destinasi: e.target.value })}
+              placeholder="Contoh: Tangkuban Perahu"
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="kategori">Kategori</Label>
+            <Select
+              value={formData.kategori}
+              onValueChange={(value) => setFormData({ ...formData, kategori: value })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="wisata">Wisata Alam</SelectItem>
+                <SelectItem value="kuliner">Kuliner</SelectItem>
+                <SelectItem value="belanja">Belanja</SelectItem>
+                <SelectItem value="sejarah">Sejarah</SelectItem>
+                <SelectItem value="hiburan">Hiburan</SelectItem>
+                <SelectItem value="religi">Religi</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="lokasi">Lokasi</Label>
+            <Input
+              id="lokasi"
+              value={formData.lokasi}
+              onChange={(e) => setFormData({ ...formData, lokasi: e.target.value })}
+              placeholder="Contoh: Lembang, Bandung"
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="durasi">Durasi Standar (menit)</Label>
+            <Input
+              id="durasi"
+              type="number"
+              value={formData.durasi_standar}
+              onChange={(e) => setFormData({ ...formData, durasi_standar: parseInt(e.target.value) })}
+              min="0"
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="biaya">Estimasi Biaya (Rp)</Label>
+            <Input
+              id="biaya"
+              type="number"
+              value={formData.estimasi_biaya}
+              onChange={(e) => setFormData({ ...formData, estimasi_biaya: parseInt(e.target.value) })}
+              min="0"
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="deskripsi">Deskripsi</Label>
+            <Textarea
+              id="deskripsi"
+              value={formData.deskripsi}
+              onChange={(e) => setFormData({ ...formData, deskripsi: e.target.value })}
+              placeholder="Deskripsi singkat tentang destinasi..."
+              rows={3}
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="flex-1"
+            >
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              className="flex-1 gradient-primary text-white"
+              disabled={loading}
+            >
+              {loading ? "Menyimpan..." : "Simpan"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default DestinationDialog;

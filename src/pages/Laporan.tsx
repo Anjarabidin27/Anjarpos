@@ -1,0 +1,318 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import AuthGuard from "@/components/AuthGuard";
+import BottomNav from "@/components/BottomNav";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Printer, TrendingUp, TrendingDown, Download, Share2 } from "lucide-react";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
+import { generateReportPDF } from "@/utils/reportPdfGenerator";
+import { Capacitor } from "@capacitor/core";
+import { Share } from "@capacitor/share";
+
+interface ReportData {
+  trips: any[];
+  keuangan: any[];
+  media: any[];
+}
+
+const Laporan = () => {
+  const [data, setData] = useState<ReportData>({ trips: [], keuangan: [], media: [] });
+  const [loading, setLoading] = useState(true);
+  const [selectedTripId, setSelectedTripId] = useState<string>("all");
+
+  useEffect(() => {
+    loadReportData();
+  }, []);
+
+  const loadReportData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const [tripsRes, keuanganRes, mediaRes] = await Promise.all([
+        supabase
+          .from("trips")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("tanggal", { ascending: false }),
+        supabase
+          .from("keuangan")
+          .select(`*, trips (nama_trip)`)
+          .eq("user_id", user.id)
+          .order("tanggal", { ascending: false }),
+        supabase
+          .from("media")
+          .select(`*, trips (nama_trip)`)
+          .eq("user_id", user.id)
+          .eq("file_type", "image"),
+      ]);
+
+      setData({
+        trips: tripsRes.data || [],
+        keuangan: keuanganRes.data || [],
+        media: mediaRes.data || [],
+      });
+    } catch (error: any) {
+      console.error("Error loading report:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGeneratePDF = async () => {
+    try {
+      const doc = generateReportPDF({
+        trips: filteredTrips,
+        keuangan: filteredKeuangan,
+        media: filteredMedia,
+        filterTripId: selectedTripId,
+      });
+
+      const fileName = `Laporan_Malika_Tour_${format(new Date(), "yyyyMMdd")}.pdf`;
+      doc.save(fileName);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    }
+  };
+
+  const handleSharePDF = async () => {
+    if (!Capacitor.isNativePlatform()) {
+      await handleGeneratePDF();
+      return;
+    }
+
+    try {
+      const doc = generateReportPDF({
+        trips: filteredTrips,
+        keuangan: filteredKeuangan,
+        media: filteredMedia,
+        filterTripId: selectedTripId,
+      });
+
+      const pdfBlob = doc.output("blob");
+      const reader = new FileReader();
+      
+      reader.onloadend = async () => {
+        const base64data = reader.result as string;
+        await Share.share({
+          title: "Laporan Malika Tour",
+          text: "Laporan Trip & Keuangan",
+          url: base64data,
+          dialogTitle: "Bagikan Laporan",
+        });
+      };
+      
+      reader.readAsDataURL(pdfBlob);
+    } catch (error) {
+      console.error("Error sharing PDF:", error);
+    }
+  };
+
+  // Filter data based on selected trip
+  const filteredTrips = selectedTripId === "all" ? data.trips : data.trips.filter(t => t.id === selectedTripId);
+  const filteredKeuangan = selectedTripId === "all" ? data.keuangan : data.keuangan.filter(k => k.trip_id === selectedTripId);
+  const filteredMedia = selectedTripId === "all" ? data.media : data.media.filter(m => m.trip_id === selectedTripId);
+
+  const totalPemasukan = filteredKeuangan
+    .filter((k) => k.jenis === "pemasukan")
+    .reduce((sum, k) => sum + Number(k.jumlah), 0);
+
+  const totalPengeluaran = filteredKeuangan
+    .filter((k) => k.jenis === "pengeluaran")
+    .reduce((sum, k) => sum + Number(k.jumlah), 0);
+
+  const getMediaUrl = (filePath: string) => {
+    const { data } = supabase.storage.from("trip-media").getPublicUrl(filePath);
+    return data.publicUrl;
+  };
+
+  if (loading) {
+    return (
+      <AuthGuard>
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+        </div>
+      </AuthGuard>
+    );
+  }
+
+  return (
+    <AuthGuard>
+      <div className="min-h-screen bg-background pb-20 safe-top">
+        <div className="max-w-4xl mx-auto p-4">
+          <div className="flex flex-col gap-4 mb-6 print:hidden">
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl font-bold">Laporan</h1>
+              <Select value={selectedTripId} onValueChange={setSelectedTripId}>
+                <SelectTrigger className="w-full md:w-[200px]">
+                  <SelectValue placeholder="Semua Trip" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Trip</SelectItem>
+                  {data.trips.map((trip) => (
+                    <SelectItem key={trip.id} value={trip.id}>
+                      {trip.nama_trip}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleGeneratePDF} className="gradient-primary text-white flex-1">
+                <Download className="w-4 h-4 mr-2" />
+                Download PDF
+              </Button>
+              <Button onClick={handleSharePDF} variant="outline" className="flex-1">
+                <Share2 className="w-4 h-4 mr-2" />
+                Bagikan
+              </Button>
+            </div>
+          </div>
+
+          {/* Print Header */}
+          <div className="hidden print:block mb-8 text-center border-b pb-4">
+            <h1 className="text-3xl font-bold text-primary mb-2">Malika Tour</h1>
+            <p className="text-lg">Laporan Trip & Keuangan</p>
+            <p className="text-sm text-muted-foreground">
+              Dicetak pada {format(new Date(), "dd MMMM yyyy, HH:mm", { locale: id })}
+            </p>
+          </div>
+
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div className="ios-card p-5">
+              <h3 className="text-sm text-muted-foreground mb-1">Total Trip</h3>
+              <p className="text-3xl font-bold text-primary">{filteredTrips.length}</p>
+            </div>
+
+            <div className="ios-card p-5 bg-green-50">
+              <div className="flex items-center mb-1">
+                <TrendingUp className="w-4 h-4 text-green-600 mr-2" />
+                <h3 className="text-sm text-muted-foreground">Pemasukan</h3>
+              </div>
+              <p className="text-2xl font-bold text-green-600">
+                Rp {totalPemasukan.toLocaleString("id-ID")}
+              </p>
+            </div>
+
+            <div className="ios-card p-5 bg-red-50">
+              <div className="flex items-center mb-1">
+                <TrendingDown className="w-4 h-4 text-red-600 mr-2" />
+                <h3 className="text-sm text-muted-foreground">Pengeluaran</h3>
+              </div>
+              <p className="text-2xl font-bold text-red-600">
+                Rp {totalPengeluaran.toLocaleString("id-ID")}
+              </p>
+            </div>
+          </div>
+
+          {/* Trips Report */}
+          <section className="mb-8">
+            <h2 className="text-xl font-bold mb-4">Riwayat Trip</h2>
+            <div className="ios-card overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-muted">
+                  <tr>
+                    <th className="text-left p-3">Nama Trip</th>
+                    <th className="text-left p-3">Tanggal</th>
+                    <th className="text-left p-3">Tujuan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTrips.map((trip) => (
+                    <tr key={trip.id} className="border-t">
+                      <td className="p-3">{trip.nama_trip}</td>
+                      <td className="p-3">{format(new Date(trip.tanggal), "dd MMM yyyy", { locale: id })}</td>
+                      <td className="p-3">{trip.tujuan}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* Financial Report */}
+          <section className="mb-8">
+            <h2 className="text-xl font-bold mb-4">Riwayat Keuangan</h2>
+            <div className="ios-card overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-muted">
+                  <tr>
+                    <th className="text-left p-3">Tanggal</th>
+                    <th className="text-left p-3">Trip</th>
+                    <th className="text-left p-3">Keterangan</th>
+                    <th className="text-right p-3">Jumlah</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredKeuangan.map((k) => (
+                    <tr key={k.id} className="border-t">
+                      <td className="p-3 text-sm">{format(new Date(k.tanggal), "dd MMM", { locale: id })}</td>
+                      <td className="p-3 text-sm">{k.trips?.nama_trip}</td>
+                      <td className="p-3 text-sm">{k.keterangan || "-"}</td>
+                      <td className={`p-3 text-right font-semibold ${k.jenis === "pemasukan" ? "text-green-600" : "text-red-600"}`}>
+                        {k.jenis === "pemasukan" ? "+" : "-"}Rp {Number(k.jumlah).toLocaleString("id-ID")}
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="border-t-2 border-primary font-bold bg-muted">
+                    <td colSpan={3} className="p-3">Total</td>
+                    <td className="p-3 text-right text-primary">
+                      Rp {(totalPemasukan - totalPengeluaran).toLocaleString("id-ID")}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* Gallery */}
+          {filteredMedia.length > 0 && (
+            <section className="mb-8">
+              <h2 className="text-xl font-bold mb-4">Galeri Foto</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {filteredMedia.map((m) => (
+                  <div key={m.id} className="ios-card overflow-hidden">
+                    <img
+                      src={getMediaUrl(m.file_path)}
+                      alt={m.file_name}
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="p-2 text-xs text-muted-foreground">
+                      {m.trips?.nama_trip}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+
+        <BottomNav />
+      </div>
+
+      <style>{`
+        @media print {
+          @page {
+            size: A4;
+            margin: 2cm 1.5cm;
+          }
+          .print\\:hidden {
+            display: none !important;
+          }
+          .print\\:block {
+            display: block !important;
+          }
+          body {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
+        }
+      `}</style>
+    </AuthGuard>
+  );
+};
+
+export default Laporan;
