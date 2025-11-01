@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { generateReportPDF } from "@/utils/reportPdfGenerator";
 import { Capacitor } from "@capacitor/core";
-import { Share } from "@capacitor/share";
+import { toast } from "sonner";
 
 interface ReportData {
   trips: any[];
@@ -78,35 +78,27 @@ const Laporan = () => {
   };
 
   const handleSharePDF = async () => {
-    if (!Capacitor.isNativePlatform()) {
-      await handleGeneratePDF();
-      return;
-    }
-
     try {
-      const doc = generateReportPDF({
-        trips: filteredTrips,
-        keuangan: filteredKeuangan,
-        media: filteredMedia,
-        filterTripId: selectedTripId,
-      });
-
-      const pdfBlob = doc.output("blob");
-      const reader = new FileReader();
+      const shareText = `*Laporan Malika Tour*\n\nTotal Trip: ${filteredTrips.length}\nPemasukan: Rp ${totalPemasukan.toLocaleString("id-ID")}\nPengeluaran: Rp ${totalPengeluaran.toLocaleString("id-ID")}\nSaldo: Rp ${(totalPemasukan - totalPengeluaran).toLocaleString("id-ID")}\n\nLaporan lengkap tersedia untuk diunduh.`;
       
-      reader.onloadend = async () => {
-        const base64data = reader.result as string;
-        await Share.share({
-          title: "Laporan Malika Tour",
-          text: "Laporan Trip & Keuangan",
-          url: base64data,
-          dialogTitle: "Bagikan Laporan",
-        });
-      };
+      const encodedText = encodeURIComponent(shareText);
+      const whatsappUrl = `whatsapp://send?text=${encodedText}`;
+      const whatsappWebUrl = `https://wa.me/?text=${encodedText}`;
       
-      reader.readAsDataURL(pdfBlob);
+      if (Capacitor.isNativePlatform()) {
+        try {
+          window.location.href = whatsappUrl;
+          toast.success("Membuka WhatsApp...");
+        } catch {
+          window.open(whatsappWebUrl, '_blank');
+        }
+      } else {
+        window.open(whatsappWebUrl, '_blank');
+        toast.success("Membuka WhatsApp Web...");
+      }
     } catch (error) {
-      console.error("Error sharing PDF:", error);
+      console.error("Error opening WhatsApp:", error);
+      toast.error("Gagal membuka WhatsApp");
     }
   };
 

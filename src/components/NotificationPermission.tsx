@@ -20,9 +20,11 @@ export const NotificationPermission = () => {
       localStorage.setItem("notification-permission-asked", "true");
       
       if (permission === "granted") {
+        // Show test notification
         new Notification("Malika Tour", {
-          body: "Notifikasi pengingat berhasil diaktifkan!",
-          icon: "/favicon.ico",
+          body: "Notifikasi pengingat berhasil diaktifkan! Anda akan menerima notifikasi H-2, H-1, dan H-5 jam sebelum trip.",
+          icon: "/malika-logo.png",
+          badge: "/malika-logo.png",
         });
       }
     } catch (error) {

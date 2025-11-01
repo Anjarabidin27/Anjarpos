@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { RupiahInput } from "@/components/RupiahInput";
 import { generateRundownPDF } from "@/utils/pdfGenerator";
 import { Capacitor } from "@capacitor/core";
-import { Share } from "@capacitor/share";
+import { scheduleTripNotifications, requestNotificationPermission, setupNotificationListeners } from "@/utils/tripNotifications";
 
 interface Trip {
   id: string;
@@ -69,6 +69,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     loadData();
+    setupNotificationListeners();
   }, []);
 
   useEffect(() => {
@@ -170,14 +171,29 @@ const Dashboard = () => {
 
   const handleAddTrip = async () => {
     try {
-      const { error } = await supabase.from("trips").insert({
+      const { data: tripData, error } = await supabase.from("trips").insert({
         user_id: user.id,
         ...newTripData,
-      });
+      }).select().single();
 
       if (error) throw error;
 
-      toast.success("Trip berhasil ditambahkan!");
+      // Schedule notifications for the new trip
+      if (tripData) {
+        const hasPermission = await requestNotificationPermission();
+        if (hasPermission) {
+          await scheduleTripNotifications({
+            id: tripData.id,
+            nama_trip: tripData.nama_trip,
+            tanggal: tripData.tanggal,
+            tujuan: tripData.tujuan,
+          });
+          toast.success("Trip berhasil ditambahkan! Notifikasi pengingat telah diatur.");
+        } else {
+          toast.success("Trip berhasil ditambahkan!");
+        }
+      }
+
       setNewTripData({ nama_trip: "", tanggal: "", tanggal_selesai: "", tujuan: "" });
       setShowAddTrip(false);
       loadData();
@@ -247,46 +263,29 @@ const Dashboard = () => {
       return;
     }
 
-    if (!Capacitor.isNativePlatform()) {
-      await handleExportRundownPDF();
-      return;
-    }
-
     try {
-      const doc = generateRundownPDF(
-        {
-          nama_trip: currentTrip.nama_trip,
-          tanggal: format(new Date(currentTrip.tanggal), "dd MMM yyyy", { locale: id }),
-          tanggal_selesai: currentTrip.tanggal_selesai 
-            ? format(new Date(currentTrip.tanggal_selesai), "dd MMM yyyy", { locale: id })
-            : null,
-          tujuan: currentTrip.tujuan,
-        },
-        rundownData
-      );
-
-      const pdfBlob = doc.output("blob");
-      const reader = new FileReader();
+      const shareText = `*Rundown Acara ${currentTrip.nama_trip}*\n\nTanggal: ${format(new Date(currentTrip.tanggal), "dd MMM yyyy", { locale: id })}${currentTrip.tanggal_selesai ? ` - ${format(new Date(currentTrip.tanggal_selesai), "dd MMM yyyy", { locale: id })}` : ""}\nTujuan: ${currentTrip.tujuan}\n\nLihat detail rundown di attachment.`;
       
-      reader.onloadend = async () => {
-        const base64data = reader.result as string;
-        
-        // Share with text message for WhatsApp
-        const shareText = `Rundown Acara ${currentTrip.nama_trip}\n\nTanggal: ${format(new Date(currentTrip.tanggal), "dd MMM yyyy", { locale: id })}${currentTrip.tanggal_selesai ? ` - ${format(new Date(currentTrip.tanggal_selesai), "dd MMM yyyy", { locale: id })}` : ""}\nTujuan: ${currentTrip.tujuan}`;
-        
-        await Share.share({
-          title: `Rundown ${currentTrip.nama_trip}`,
-          text: shareText,
-          url: base64data,
-          dialogTitle: "Bagikan via WhatsApp",
-        });
-      };
+      const encodedText = encodeURIComponent(shareText);
+      const whatsappUrl = `whatsapp://send?text=${encodedText}`;
+      const whatsappWebUrl = `https://wa.me/?text=${encodedText}`;
       
-      reader.readAsDataURL(pdfBlob);
-      toast.success("Berhasil membagikan PDF!");
+      if (Capacitor.isNativePlatform()) {
+        // Native: Open WhatsApp directly
+        try {
+          window.location.href = whatsappUrl;
+          toast.success("Membuka WhatsApp...");
+        } catch {
+          window.open(whatsappWebUrl, '_blank');
+        }
+      } else {
+        // Web: Open WhatsApp Web
+        window.open(whatsappWebUrl, '_blank');
+        toast.success("Membuka WhatsApp Web...");
+      }
     } catch (error) {
-      console.error("Error sharing PDF:", error);
-      toast.error("Gagal membagikan PDF");
+      console.error("Error opening WhatsApp:", error);
+      toast.error("Gagal membuka WhatsApp");
     }
   };
 
