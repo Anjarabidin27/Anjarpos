@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { FeedbackDialog } from "./FeedbackDialog";
-import malikaLogo from "@/assets/malika-logo.png";
+import BusAnimation from "@/components/BusAnimation";
 
 export const AnimatedHeader = () => {
   const [showFeedback, setShowFeedback] = useState(false);
@@ -10,8 +10,8 @@ export const AnimatedHeader = () => {
     <>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="animate-float">
-            <img src={malikaLogo} alt="Malika Tour" className="w-12 h-12 object-contain" />
+          <div className="w-12 h-10">
+            <BusAnimation />
           </div>
           <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
             Malika Tour

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import malikaLogo from "@/assets/malika-logo.png";
+import BusAnimation from "@/components/BusAnimation";
 
 const GreetingHeader = () => {
   const [greeting, setGreeting] = useState("");
@@ -35,8 +35,8 @@ const GreetingHeader = () => {
           <h1 className="text-2xl font-bold text-white mb-1">{greeting}! 👋</h1>
           <p className="text-white/90 text-sm">Selamat datang di Malika Tour</p>
         </div>
-        <div className="animate-float">
-          <img src={malikaLogo} alt="Malika Tour" className="w-20 h-20 object-contain drop-shadow-2xl" />
+        <div className="w-20 h-16">
+          <BusAnimation />
         </div>
       </div>
     </div>

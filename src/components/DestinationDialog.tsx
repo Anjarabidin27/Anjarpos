@@ -94,24 +94,31 @@ const DestinationDialog = ({ open, onOpenChange, destination, onSuccess }: Desti
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <h3 className="text-sm font-semibold text-primary mb-2">Informasi Utama</h3>
+          
           <div>
-            <Label htmlFor="nama_destinasi">Nama Destinasi</Label>
+            <Label htmlFor="nama_destinasi">
+              Nama Destinasi <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="nama_destinasi"
               value={formData.nama_destinasi}
               onChange={(e) => setFormData({ ...formData, nama_destinasi: e.target.value })}
               placeholder="Contoh: Tangkuban Perahu"
               required
+              className="border-2"
             />
           </div>
 
           <div>
-            <Label htmlFor="kategori">Kategori</Label>
+            <Label htmlFor="kategori">
+              Kategori <span className="text-destructive">*</span>
+            </Label>
             <Select
               value={formData.kategori}
               onValueChange={(value) => setFormData({ ...formData, kategori: value })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="border-2">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -126,18 +133,25 @@ const DestinationDialog = ({ open, onOpenChange, destination, onSuccess }: Desti
           </div>
 
           <div>
-            <Label htmlFor="lokasi">Lokasi</Label>
+            <Label htmlFor="lokasi">
+              Lokasi <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="lokasi"
               value={formData.lokasi}
               onChange={(e) => setFormData({ ...formData, lokasi: e.target.value })}
               placeholder="Contoh: Lembang, Bandung"
               required
+              className="border-2"
             />
           </div>
 
+          <h3 className="text-sm font-semibold text-primary mb-2 mt-4">Detail Tambahan</h3>
+
           <div>
-            <Label htmlFor="durasi">Durasi Standar (menit)</Label>
+            <Label htmlFor="durasi">
+              Durasi Standar (menit) <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="durasi"
               type="number"
@@ -145,11 +159,15 @@ const DestinationDialog = ({ open, onOpenChange, destination, onSuccess }: Desti
               onChange={(e) => setFormData({ ...formData, durasi_standar: parseInt(e.target.value) })}
               min="0"
               required
+              className="border-2"
             />
+            <p className="text-xs text-muted-foreground mt-1">💡 Perkiraan lama kunjungan (untuk jadwal trip)</p>
           </div>
 
           <div>
-            <Label htmlFor="biaya">Estimasi Biaya (Rp)</Label>
+            <Label htmlFor="biaya">
+              Estimasi Biaya (Rp) <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="biaya"
               type="number"
@@ -157,11 +175,15 @@ const DestinationDialog = ({ open, onOpenChange, destination, onSuccess }: Desti
               onChange={(e) => setFormData({ ...formData, estimasi_biaya: parseInt(e.target.value) })}
               min="0"
               required
+              className="border-2"
             />
+            <p className="text-xs text-muted-foreground mt-1">💡 Tiket masuk atau biaya rata-rata per orang</p>
           </div>
 
           <div>
-            <Label htmlFor="deskripsi">Deskripsi</Label>
+            <Label htmlFor="deskripsi">
+              Deskripsi <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Opsional</span>
+            </Label>
             <Textarea
               id="deskripsi"
               value={formData.deskripsi}

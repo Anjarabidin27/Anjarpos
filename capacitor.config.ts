@@ -12,9 +12,22 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 2000,
       backgroundColor: "#0088FF",
-      showSpinner: false,
+      showSpinner: true,
+      androidSpinnerStyle: 'small',
+      iosSpinnerStyle: 'small',
+      splashFullScreen: true,
+      splashImmersive: true,
     },
   },
+  android: {
+    buildOptions: {
+      keystorePath: undefined,
+      keystorePassword: undefined,
+      keystoreAlias: undefined,
+      keystoreAliasPassword: undefined,
+      releaseType: 'APK'
+    }
+  }
 };
 
 export default config;

@@ -5,13 +5,16 @@ import AuthGuard from "@/components/AuthGuard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft } from "lucide-react";
+import FormField from "@/components/FormField";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ArrowLeft, ChevronDown, Bus, Calendar, MapPin, User } from "lucide-react";
 import { toast } from "sonner";
 
 const NewTrip = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [showVehicleDetails, setShowVehicleDetails] = useState(false);
+  const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
   const [formData, setFormData] = useState({
     nama_trip: "",
     tanggal: "",
@@ -56,7 +59,9 @@ const NewTrip = () => {
       toast.success("Trip berhasil ditambahkan!");
       
       // Navigate to select destinations page
-      navigate("/destinations/select", { state: { tripId: data.id } });
+      if (data) {
+        navigate("/destinations/select", { state: { tripId: data.id } });
+      }
     } catch (error: any) {
       console.error("Error:", error);
       toast.error("Gagal menambahkan trip");
@@ -78,131 +83,154 @@ const NewTrip = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
 
-          <h1 className="text-2xl font-bold mb-6">Tambah Trip Baru</h1>
+          <h1 className="text-2xl font-bold mb-2">Tambah Trip Baru</h1>
+          <p className="text-sm text-muted-foreground mb-6">
+            Isi informasi trip. Field dengan tanda <span className="text-destructive">*</span> wajib diisi
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Informasi Wajib */}
             <div className="ios-card p-5">
+              <h3 className="font-semibold text-sm text-primary mb-4 flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Informasi Wajib
+              </h3>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="nama_trip">Nama Trip</Label>
+                  <Label htmlFor="nama_trip" className="flex items-center gap-2">
+                    Nama Trip <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     id="nama_trip"
                     value={formData.nama_trip}
                     onChange={(e) => setFormData({ ...formData, nama_trip: e.target.value })}
                     placeholder="Contoh: Trip Jakarta - Bandung"
                     required
-                    className="mt-1"
+                    className="mt-1 border-2"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="tanggal">Tanggal Mulai</Label>
+                  <Label htmlFor="tanggal" className="flex items-center gap-2">
+                    Tanggal Mulai <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     id="tanggal"
                     type="date"
                     value={formData.tanggal}
                     onChange={(e) => setFormData({ ...formData, tanggal: e.target.value })}
                     required
-                    className="mt-1"
+                    className="mt-1 border-2"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="tanggal_selesai">Tanggal Selesai (Opsional)</Label>
-                  <Input
-                    id="tanggal_selesai"
-                    type="date"
-                    value={formData.tanggal_selesai}
-                    onChange={(e) => setFormData({ ...formData, tanggal_selesai: e.target.value })}
-                    min={formData.tanggal}
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="tujuan">Tujuan</Label>
+                  <Label htmlFor="tujuan" className="flex items-center gap-2">
+                    Tujuan <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     id="tujuan"
                     value={formData.tujuan}
                     onChange={(e) => setFormData({ ...formData, tujuan: e.target.value })}
                     placeholder="Contoh: Bandung"
                     required
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="nama_kendaraan">Nama Kendaraan/Bus</Label>
-                  <Input
-                    id="nama_kendaraan"
-                    value={formData.nama_kendaraan}
-                    onChange={(e) => setFormData({ ...formData, nama_kendaraan: e.target.value })}
-                    placeholder="Contoh: Bus Pariwisata Eka"
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="nomor_polisi">Nomor Polisi (Opsional)</Label>
-                  <Input
-                    id="nomor_polisi"
-                    value={formData.nomor_polisi}
-                    onChange={(e) => setFormData({ ...formData, nomor_polisi: e.target.value })}
-                    placeholder="Contoh: B 1234 ABC"
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="nama_driver">Nama Driver (Opsional)</Label>
-                  <Input
-                    id="nama_driver"
-                    value={formData.nama_driver}
-                    onChange={(e) => setFormData({ ...formData, nama_driver: e.target.value })}
-                    placeholder="Contoh: Budi Santoso"
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="jumlah_penumpang">Jumlah Penumpang (Opsional)</Label>
-                  <Input
-                    id="jumlah_penumpang"
-                    type="number"
-                    value={formData.jumlah_penumpang}
-                    onChange={(e) => setFormData({ ...formData, jumlah_penumpang: e.target.value })}
-                    placeholder="Contoh: 40"
-                    min="1"
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="budget_estimasi">Budget Estimasi (Opsional)</Label>
-                  <Input
-                    id="budget_estimasi"
-                    type="number"
-                    value={formData.budget_estimasi}
-                    onChange={(e) => setFormData({ ...formData, budget_estimasi: e.target.value })}
-                    placeholder="Contoh: 5000000"
-                    min="0"
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="catatan">Catatan (Opsional)</Label>
-                  <Textarea
-                    id="catatan"
-                    value={formData.catatan}
-                    onChange={(e) => setFormData({ ...formData, catatan: e.target.value })}
-                    placeholder="Tambahkan catatan trip..."
-                    rows={4}
-                    className="mt-1"
+                    className="mt-1 border-2"
                   />
                 </div>
               </div>
             </div>
+
+            {/* Detail Kendaraan (Collapsible) */}
+            <Collapsible open={showVehicleDetails} onOpenChange={setShowVehicleDetails}>
+              <div className="ios-card p-5">
+                <CollapsibleTrigger className="w-full flex items-center justify-between group">
+                  <h3 className="font-semibold text-sm text-muted-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                    <Bus className="w-4 h-4" />
+                    Detail Kendaraan <span className="text-xs bg-muted px-2 py-0.5 rounded-full ml-2">Opsional</span>
+                  </h3>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showVehicleDetails ? 'rotate-180' : ''}`} />
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="space-y-4 mt-4">
+                  <FormField
+                    label="Nama Kendaraan/Bus"
+                    value={formData.nama_kendaraan}
+                    onChange={(value) => setFormData({ ...formData, nama_kendaraan: value })}
+                    placeholder="Contoh: Bus Pariwisata Eka"
+                    helpText="Simpan nama kendaraan untuk referensi cepat"
+                    icon={<Bus className="w-4 h-4" />}
+                  />
+
+                  <FormField
+                    label="Nomor Polisi"
+                    value={formData.nomor_polisi}
+                    onChange={(value) => setFormData({ ...formData, nomor_polisi: value })}
+                    placeholder="Contoh: B 1234 ABC"
+                    helpText="Berguna untuk dokumentasi dan laporan"
+                  />
+
+                  <FormField
+                    label="Nama Driver"
+                    value={formData.nama_driver}
+                    onChange={(value) => setFormData({ ...formData, nama_driver: value })}
+                    placeholder="Contoh: Budi Santoso"
+                    helpText="Simpan nama driver untuk koordinasi"
+                    icon={<User className="w-4 h-4" />}
+                  />
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
+            {/* Informasi Tambahan (Collapsible) */}
+            <Collapsible open={showAdditionalInfo} onOpenChange={setShowAdditionalInfo}>
+              <div className="ios-card p-5">
+                <CollapsibleTrigger className="w-full flex items-center justify-between group">
+                  <h3 className="font-semibold text-sm text-muted-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    Informasi Tambahan <span className="text-xs bg-muted px-2 py-0.5 rounded-full ml-2">Opsional</span>
+                  </h3>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showAdditionalInfo ? 'rotate-180' : ''}`} />
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="space-y-4 mt-4">
+                  <FormField
+                    label="Tanggal Selesai"
+                    value={formData.tanggal_selesai}
+                    onChange={(value) => setFormData({ ...formData, tanggal_selesai: value })}
+                    type="date"
+                    helpText="Untuk trip multi-hari, tentukan tanggal selesai"
+                  />
+
+                  <FormField
+                    label="Jumlah Penumpang"
+                    value={formData.jumlah_penumpang}
+                    onChange={(value) => setFormData({ ...formData, jumlah_penumpang: value })}
+                    type="number"
+                    placeholder="Contoh: 40"
+                    helpText="Membantu perencanaan kapasitas dan biaya per orang"
+                  />
+
+                  <FormField
+                    label="Budget Estimasi (Rp)"
+                    value={formData.budget_estimasi}
+                    onChange={(value) => setFormData({ ...formData, budget_estimasi: value })}
+                    type="number"
+                    placeholder="Contoh: 5000000"
+                    helpText="Untuk tracking budget vs pengeluaran aktual"
+                  />
+
+                  <FormField
+                    label="Catatan"
+                    value={formData.catatan}
+                    onChange={(value) => setFormData({ ...formData, catatan: value })}
+                    type="textarea"
+                    placeholder="Tambahkan catatan trip..."
+                    rows={4}
+                    helpText="Catatan khusus atau informasi penting lainnya"
+                  />
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
 
             <Button
               type="submit"

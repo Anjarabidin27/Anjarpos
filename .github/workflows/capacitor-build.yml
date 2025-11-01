@@ -26,6 +26,24 @@ jobs:
       - name: Build web app
         run: npm run build
 
+      - name: Copy app icon to Android resources
+        run: |
+          mkdir -p android/app/src/main/res/mipmap-mdpi
+          mkdir -p android/app/src/main/res/mipmap-hdpi
+          mkdir -p android/app/src/main/res/mipmap-xhdpi
+          mkdir -p android/app/src/main/res/mipmap-xxhdpi
+          mkdir -p android/app/src/main/res/mipmap-xxxhdpi
+          # Convert and copy icon to different densities
+          # Note: You'll need ImageMagick or similar tool installed for resizing
+          # For now, we'll just copy the main icon
+          if [ -f resources/icon.png ]; then
+            cp resources/icon.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png 2>/dev/null || true
+            cp resources/icon.png android/app/src/main/res/mipmap-hdpi/ic_launcher.png 2>/dev/null || true
+            cp resources/icon.png android/app/src/main/res/mipmap-xhdpi/ic_launcher.png 2>/dev/null || true
+            cp resources/icon.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png 2>/dev/null || true
+            cp resources/icon.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png 2>/dev/null || true
+          fi
+
       - name: Remove development server config from Capacitor
         run: |
           cat > capacitor.config.ts << 'EOF'
@@ -102,6 +120,15 @@ jobs:
 
       - name: Build web app
         run: npm run build
+
+      - name: Copy app icon to iOS resources
+        run: |
+          if [ -f resources/icon.png ]; then
+            # Create iOS icon folder structure
+            mkdir -p ios/App/App/Assets.xcassets/AppIcon.appiconset
+            # Copy icon (iOS needs specific sizes, this is simplified)
+            cp resources/icon.png ios/App/App/Assets.xcassets/AppIcon.appiconset/icon-1024.png 2>/dev/null || true
+          fi
 
       - name: Remove development server config from Capacitor
         run: |

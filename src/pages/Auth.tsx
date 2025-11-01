@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import malikaLogo from "@/assets/malika-logo.png";
+import BusAnimation from "@/components/BusAnimation";
 import { Eye, EyeOff, Fingerprint } from "lucide-react";
 import { biometricAuth } from "@/utils/biometricAuth";
 import { Capacitor } from "@capacitor/core";
@@ -113,8 +113,10 @@ const Auth = () => {
       <div className="w-full max-w-md">
         <div className="ios-card p-8 animate-slide-up backdrop-blur-xl bg-white/95">
           <div className="text-center mb-8">
-            <div className="flex justify-center mb-6 animate-float">
-              <img src={malikaLogo} alt="Malika Tour" className="w-32 h-32 object-contain" />
+            <div className="flex justify-center mb-6">
+              <div className="w-40 h-32">
+                <BusAnimation />
+              </div>
             </div>
             <h1 className="text-3xl font-bold text-primary mb-2">Malika Tour</h1>
             <p className="text-muted-foreground">Manajemen Trip & Keuangan</p>

@@ -308,7 +308,9 @@ export const ReminderDialog = ({ open, onOpenChange }: ReminderDialogProps) => {
             </div>
 
             <div>
-              <Label htmlFor="keterangan">Keterangan (Opsional)</Label>
+              <Label htmlFor="keterangan">
+                Keterangan <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full ml-2">Opsional</span>
+              </Label>
               <Textarea
                 id="keterangan"
                 value={formData.keterangan}
@@ -317,6 +319,7 @@ export const ReminderDialog = ({ open, onOpenChange }: ReminderDialogProps) => {
                 rows={3}
                 className="mt-1"
               />
+              <p className="text-xs text-muted-foreground mt-1">💡 Tambahkan detail atau instruksi khusus untuk reminder ini</p>
             </div>
 
             <div className="flex gap-2">
