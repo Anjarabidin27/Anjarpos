@@ -55,6 +55,7 @@ export type Database = {
       }
       keuangan: {
         Row: {
+          cashback: number | null
           created_at: string | null
           harga_satuan: number | null
           id: string
@@ -67,6 +68,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cashback?: number | null
           created_at?: string | null
           harga_satuan?: number | null
           id?: string
@@ -79,6 +81,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cashback?: number | null
           created_at?: string | null
           harga_satuan?: number | null
           id?: string
@@ -256,6 +259,38 @@ export type Database = {
           },
         ]
       }
+      trip_destination_notes: {
+        Row: {
+          catatan: string
+          created_at: string
+          id: string
+          trip_id: string
+          user_id: string
+        }
+        Insert: {
+          catatan: string
+          created_at?: string
+          id?: string
+          trip_id: string
+          user_id: string
+        }
+        Update: {
+          catatan?: string
+          created_at?: string
+          id?: string
+          trip_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_destination_notes_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trip_destinations: {
         Row: {
           catatan: string | null
@@ -298,19 +333,47 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_price_notes: {
+        Row: {
+          created_at: string
+          id: string
+          jumlah: number
+          keterangan: string
+          trip_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          jumlah: number
+          keterangan: string
+          trip_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          jumlah?: number
+          keterangan?: string
+          trip_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_price_notes_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trips: {
         Row: {
-          budget_dp: number | null
-          budget_estimasi: number | null
           catatan: string | null
           created_at: string | null
           id: string
-          jumlah_penumpang: number | null
-          nama_driver: string | null
-          nama_kendaraan: string | null
           nama_trip: string
-          nomor_polisi: string | null
-          status: string | null
           tanggal: string
           tanggal_selesai: string | null
           tujuan: string
@@ -318,17 +381,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          budget_dp?: number | null
-          budget_estimasi?: number | null
           catatan?: string | null
           created_at?: string | null
           id?: string
-          jumlah_penumpang?: number | null
-          nama_driver?: string | null
-          nama_kendaraan?: string | null
           nama_trip: string
-          nomor_polisi?: string | null
-          status?: string | null
           tanggal: string
           tanggal_selesai?: string | null
           tujuan: string
@@ -336,17 +392,10 @@ export type Database = {
           user_id: string
         }
         Update: {
-          budget_dp?: number | null
-          budget_estimasi?: number | null
           catatan?: string | null
           created_at?: string | null
           id?: string
-          jumlah_penumpang?: number | null
-          nama_driver?: string | null
-          nama_kendaraan?: string | null
           nama_trip?: string
-          nomor_polisi?: string | null
-          status?: string | null
           tanggal?: string
           tanggal_selesai?: string | null
           tujuan?: string
