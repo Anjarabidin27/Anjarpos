@@ -240,21 +240,24 @@ const Laporan = () => {
                   const isProfit = saldo >= 0;
 
                   return (
-                    <div key={trip.id} className="flex justify-between items-center text-sm border-b last:border-0 pb-2 last:pb-0">
-                      <div className="flex-1">
-                        <p className="font-medium">{trip.nama_trip}</p>
-                        <p className="text-xs text-muted-foreground">{trip.tujuan}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <p className="text-xs text-muted-foreground">
-                            {format(new Date(trip.tanggal), "dd MMM", { locale: id })}
-                          </p>
-                          {saldo !== 0 && (
-                            <span className={`text-xs font-semibold ${isProfit ? "text-green-600" : "text-red-600"}`}>
-                              {isProfit ? "↑" : "↓"} {formatRupiah(Math.abs(saldo))}
-                            </span>
-                          )}
-                        </div>
+                    <div key={trip.id} className="flex justify-between items-start text-sm border-b last:border-0 pb-2 last:pb-0">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{trip.nama_trip}</p>
+                        <p className="text-xs text-muted-foreground truncate">{trip.tujuan}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {format(new Date(trip.tanggal), "dd MMM", { locale: id })}
+                        </p>
                       </div>
+                      {saldo !== 0 && (
+                        <div className="text-right ml-3 flex-shrink-0">
+                          <p className={`text-xs font-semibold ${isProfit ? "text-green-600" : "text-red-600"}`}>
+                            {isProfit ? "↑ Untung" : "↓ Rugi"}
+                          </p>
+                          <p className={`text-sm font-bold ${isProfit ? "text-green-600" : "text-red-600"}`}>
+                            {formatRupiah(Math.abs(saldo))}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   );
                 })

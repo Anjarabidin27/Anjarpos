@@ -26,6 +26,16 @@ jobs:
       - name: Build web app
         run: npm run build
 
+      - name: Verify resources icon exists
+        run: |
+          if [ ! -f resources/icon.png ]; then
+            echo "Error: resources/icon.png not found!"
+            echo "Please ensure the icon file exists in the resources/ directory"
+            exit 1
+          fi
+          echo "Icon file verified at resources/icon.png"
+          ls -lh resources/icon.png
+
       - name: Install Capacitor Assets
         run: npm install -g @capacitor/assets
 
@@ -114,6 +124,16 @@ jobs:
 
       - name: Build web app
         run: npm run build
+
+      - name: Verify resources icon exists
+        run: |
+          if [ ! -f resources/icon.png ]; then
+            echo "Error: resources/icon.png not found!"
+            echo "Please ensure the icon file exists in the resources/ directory"
+            exit 1
+          fi
+          echo "Icon file verified at resources/icon.png"
+          ls -lh resources/icon.png
 
       - name: Install Capacitor Assets
         run: npm install -g @capacitor/assets
