@@ -10,6 +10,7 @@ import { id } from "date-fns/locale";
 import { generateReportPDF } from "@/utils/reportPdfGenerator";
 import { Capacitor } from "@capacitor/core";
 import { toast } from "sonner";
+import { formatRupiah } from "@/lib/utils";
 
 interface ReportData {
   trips: any[];
@@ -21,6 +22,7 @@ const Laporan = () => {
   const [data, setData] = useState<ReportData>({ trips: [], keuangan: [], media: [] });
   const [loading, setLoading] = useState(true);
   const [selectedTripId, setSelectedTripId] = useState<string>("all");
+  const [filterMonth, setFilterMonth] = useState<string>("current");
 
   useEffect(() => {
     loadReportData();
@@ -102,10 +104,37 @@ const Laporan = () => {
     }
   };
 
-  // Filter data based on selected trip
-  const filteredTrips = selectedTripId === "all" ? data.trips : data.trips.filter(t => t.id === selectedTripId);
-  const filteredKeuangan = selectedTripId === "all" ? data.keuangan : data.keuangan.filter(k => k.trip_id === selectedTripId);
+  // Filter by month
+  const filterDataByMonth = (data: any[], dateField: string) => {
+    const today = new Date();
+    
+    return data.filter((item) => {
+      const itemDate = new Date(item[dateField]);
+      
+      if (filterMonth === "current") {
+        return itemDate.getMonth() === today.getMonth() && itemDate.getFullYear() === today.getFullYear();
+      } else if (filterMonth === "last") {
+        const lastMonth = new Date();
+        lastMonth.setMonth(lastMonth.getMonth() - 1);
+        return itemDate.getMonth() === lastMonth.getMonth() && itemDate.getFullYear() === lastMonth.getFullYear();
+      }
+      return true; // all
+    });
+  };
+
+  // Filter data based on selected trip and month
+  let filteredTrips = selectedTripId === "all" ? data.trips : data.trips.filter(t => t.id === selectedTripId);
+  let filteredKeuangan = selectedTripId === "all" ? data.keuangan : data.keuangan.filter(k => k.trip_id === selectedTripId);
   const filteredMedia = selectedTripId === "all" ? data.media : data.media.filter(m => m.trip_id === selectedTripId);
+
+  // Apply month filter
+  filteredTrips = filterDataByMonth(filteredTrips, 'tanggal');
+  filteredKeuangan = filterDataByMonth(filteredKeuangan, 'tanggal');
+
+  // Only show completed trips
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  filteredTrips = filteredTrips.filter(t => new Date(t.tanggal) < today);
 
   const totalPemasukan = filteredKeuangan
     .filter((k) => k.jenis === "pemasukan")
@@ -114,6 +143,8 @@ const Laporan = () => {
   const totalPengeluaran = filteredKeuangan
     .filter((k) => k.jenis === "pengeluaran")
     .reduce((sum, k) => sum + Number(k.jumlah), 0);
+  
+  const netResult = totalPemasukan - totalPengeluaran;
 
   const getMediaUrl = (filePath: string) => {
     const { data } = supabase.storage.from("trip-media").getPublicUrl(filePath);
@@ -137,19 +168,31 @@ const Laporan = () => {
           <div className="flex flex-col gap-4 mb-6 print:hidden">
             <div className="flex items-center gap-4">
               <h1 className="text-2xl font-bold">Laporan</h1>
-              <Select value={selectedTripId} onValueChange={setSelectedTripId}>
-                <SelectTrigger className="w-full md:w-[200px]">
-                  <SelectValue placeholder="Semua Trip" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Trip</SelectItem>
-                  {data.trips.map((trip) => (
-                    <SelectItem key={trip.id} value={trip.id}>
-                      {trip.nama_trip}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2 flex-1">
+                <Select value={filterMonth} onValueChange={setFilterMonth}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Filter Bulan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="current">Bulan Ini</SelectItem>
+                    <SelectItem value="last">Bulan Lalu</SelectItem>
+                    <SelectItem value="all">Semua</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={selectedTripId} onValueChange={setSelectedTripId}>
+                  <SelectTrigger className="flex-1 md:w-[200px]">
+                    <SelectValue placeholder="Semua Trip" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Trip</SelectItem>
+                    {data.trips.map((trip) => (
+                      <SelectItem key={trip.id} value={trip.id}>
+                        {trip.nama_trip}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="flex gap-2">
               <Button onClick={handleGeneratePDF} className="gradient-primary text-white flex-1">
@@ -173,9 +216,9 @@ const Laporan = () => {
           </div>
 
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className="ios-card p-5">
-              <h3 className="text-sm text-muted-foreground mb-1">Total Trip</h3>
+              <h3 className="text-sm text-muted-foreground mb-1">Trip Selesai</h3>
               <p className="text-3xl font-bold text-primary">{filteredTrips.length}</p>
             </div>
 
@@ -185,7 +228,7 @@ const Laporan = () => {
                 <h3 className="text-sm text-muted-foreground">Pemasukan</h3>
               </div>
               <p className="text-2xl font-bold text-green-600">
-                Rp {totalPemasukan.toLocaleString("id-ID")}
+                {formatRupiah(totalPemasukan)}
               </p>
             </div>
 
@@ -195,7 +238,16 @@ const Laporan = () => {
                 <h3 className="text-sm text-muted-foreground">Pengeluaran</h3>
               </div>
               <p className="text-2xl font-bold text-red-600">
-                Rp {totalPengeluaran.toLocaleString("id-ID")}
+                {formatRupiah(totalPengeluaran)}
+              </p>
+            </div>
+
+            <div className={`ios-card p-5 ${netResult >= 0 ? "bg-green-50" : "bg-red-50"}`}>
+              <h3 className="text-sm text-muted-foreground mb-1">
+                {netResult >= 0 ? "Total Untung" : "Total Rugi"}
+              </h3>
+              <p className={`text-2xl font-bold ${netResult >= 0 ? "text-green-600" : "text-red-600"}`}>
+                {formatRupiah(Math.abs(netResult))}
               </p>
             </div>
           </div>
@@ -245,14 +297,14 @@ const Laporan = () => {
                       <td className="p-3 text-sm">{k.trips?.nama_trip}</td>
                       <td className="p-3 text-sm">{k.keterangan || "-"}</td>
                       <td className={`p-3 text-right font-semibold ${k.jenis === "pemasukan" ? "text-green-600" : "text-red-600"}`}>
-                        {k.jenis === "pemasukan" ? "+" : "-"}Rp {Number(k.jumlah).toLocaleString("id-ID")}
+                        {k.jenis === "pemasukan" ? "+" : "-"}{formatRupiah(Number(k.jumlah))}
                       </td>
                     </tr>
                   ))}
-                  <tr className="border-t-2 border-primary font-bold bg-muted">
-                    <td colSpan={3} className="p-3">Total</td>
-                    <td className="p-3 text-right text-primary">
-                      Rp {(totalPemasukan - totalPengeluaran).toLocaleString("id-ID")}
+                  <tr className={`border-t-2 border-primary font-bold ${netResult >= 0 ? "bg-green-50" : "bg-red-50"}`}>
+                    <td colSpan={3} className="p-3">{netResult >= 0 ? "Total Untung" : "Total Rugi"}</td>
+                    <td className={`p-3 text-right ${netResult >= 0 ? "text-green-600" : "text-red-600"}`}>
+                      {formatRupiah(Math.abs(netResult))}
                     </td>
                   </tr>
                 </tbody>

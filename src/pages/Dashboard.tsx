@@ -111,18 +111,17 @@ const Dashboard = () => {
       if (allTripsError) throw allTripsError;
 
       const allTrips = allTripsData || [];
+      setTrips(allTrips);
       
       // Find upcoming or ongoing trips
       const today = new Date();
-      const todayStr = format(today, "yyyy-MM-dd");
+      today.setHours(0, 0, 0, 0);
       
       const upcomingTrips = allTrips.filter((trip) => {
         const start = new Date(trip.tanggal);
         const end = trip.tanggal_selesai ? new Date(trip.tanggal_selesai) : start;
         return end >= today;
       }).sort((a, b) => new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime());
-
-      setTrips(upcomingTrips);
 
       // Find ongoing or upcoming trip
       const ongoing = upcomingTrips.find((trip) => {

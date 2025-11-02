@@ -270,9 +270,9 @@ const TripDetail = () => {
           </div>
 
           {/* 5 Navbar Tabs */}
-          <Tabs defaultValue="acuan" className="w-full">
+        <Tabs defaultValue="acuan" className="w-full">
             <TabsList className="grid w-full grid-cols-5 mb-4 h-auto">
-              <TabsTrigger value="acuan" className="text-xs px-1">Acuan</TabsTrigger>
+              <TabsTrigger value="acuan" className="text-xs px-1">Perencanaan</TabsTrigger>
               <TabsTrigger value="keuangan" className="text-xs px-1">Keuangan</TabsTrigger>
               <TabsTrigger value="rundown" className="text-xs px-1">Rundown</TabsTrigger>
               <TabsTrigger value="catatan" className="text-xs px-1">Catatan</TabsTrigger>

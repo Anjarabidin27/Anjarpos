@@ -19,16 +19,39 @@ const NewKeuangan = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [useCalculator, setUseCalculator] = useState(false);
+  const [hargaSatuan, setHargaSatuan] = useState("");
+  const [jumlahItem, setJumlahItem] = useState("");
   const [formData, setFormData] = useState({
     trip_id: "",
     jenis: "",
     jumlah: "",
     keterangan: "",
+    hasCashback: false,
+    cashback: "",
   });
 
   useEffect(() => {
     loadTrips();
   }, []);
+
+  // Auto-calculate when calculator fields change
+  useEffect(() => {
+    if (useCalculator && hargaSatuan && jumlahItem) {
+      const unformatRupiah = (formatted: string): number => {
+        return Number(formatted.replace(/\./g, "").replace(/,/g, ".")) || 0;
+      };
+      const satuan = unformatRupiah(hargaSatuan);
+      const qty = Number(jumlahItem) || 0;
+      const total = satuan * qty;
+      
+      const formatRupiah = (angka: number) => {
+        return angka.toLocaleString("id-ID");
+      };
+      
+      setFormData({ ...formData, jumlah: formatRupiah(total) });
+    }
+  }, [hargaSatuan, jumlahItem, useCalculator]);
 
   const loadTrips = async () => {
     try {
@@ -67,6 +90,9 @@ const NewKeuangan = () => {
         jenis: formData.jenis,
         jumlah: unformatRupiah(formData.jumlah),
         keterangan: formData.keterangan || null,
+        cashback: formData.hasCashback ? unformatRupiah(formData.cashback) : null,
+        harga_satuan: useCalculator && hargaSatuan ? unformatRupiah(hargaSatuan) : null,
+        jumlah_item: useCalculator && jumlahItem ? Number(jumlahItem) : null,
       });
 
       if (error) throw error;
@@ -128,14 +154,52 @@ const NewKeuangan = () => {
                   </Select>
                 </div>
 
-                <RupiahInput
-                  id="jumlah"
-                  label="Jumlah"
-                  value={formData.jumlah}
-                  onChange={(value) => setFormData({ ...formData, jumlah: value })}
-                  placeholder="0"
-                  required
-                />
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="useCalculator"
+                    checked={useCalculator}
+                    onChange={(e) => setUseCalculator(e.target.checked)}
+                    className="rounded"
+                  />
+                  <Label htmlFor="useCalculator">Gunakan Kalkulator (contoh: 60 tiket @ Rp50.000)</Label>
+                </div>
+
+                {useCalculator ? (
+                  <div className="space-y-3">
+                    <RupiahInput 
+                      label="Harga Satuan" 
+                      value={hargaSatuan} 
+                      onChange={setHargaSatuan} 
+                      placeholder="Contoh: 50000"
+                      required 
+                    />
+                    <div>
+                      <Label>Jumlah Item/Orang</Label>
+                      <input
+                        type="number"
+                        value={jumlahItem}
+                        onChange={(e) => setJumlahItem(e.target.value)}
+                        placeholder="Contoh: 60"
+                        required
+                        className="w-full px-3 py-2 border rounded-md mt-1"
+                      />
+                    </div>
+                    <div className="p-3 bg-muted rounded-md">
+                      <Label className="text-sm text-muted-foreground">Total Otomatis:</Label>
+                      <p className="text-lg font-bold text-primary">{formData.jumlah ? `Rp ${formData.jumlah}` : "Rp 0"}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <RupiahInput
+                    id="jumlah"
+                    label="Jumlah"
+                    value={formData.jumlah}
+                    onChange={(value) => setFormData({ ...formData, jumlah: value })}
+                    placeholder="0"
+                    required
+                  />
+                )}
 
                 <div>
                   <Label htmlFor="keterangan">Keterangan (Opsional)</Label>
@@ -148,6 +212,26 @@ const NewKeuangan = () => {
                     className="mt-1"
                   />
                 </div>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="hasCashback"
+                    checked={formData.hasCashback}
+                    onChange={(e) => setFormData({ ...formData, hasCashback: e.target.checked })}
+                    className="rounded"
+                  />
+                  <Label htmlFor="hasCashback">Ada Cashback?</Label>
+                </div>
+
+                {formData.hasCashback && (
+                  <RupiahInput
+                    label="Cashback"
+                    value={formData.cashback}
+                    onChange={(value) => setFormData({ ...formData, cashback: value })}
+                    placeholder="0"
+                  />
+                )}
               </div>
             </div>
 
