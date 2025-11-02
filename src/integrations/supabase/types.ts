@@ -14,7 +14,491 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      catering_notes: {
+        Row: {
+          created_at: string
+          harga_per_snack: number
+          id: string
+          nama_catering: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          harga_per_snack: number
+          id?: string
+          nama_catering: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          harga_per_snack?: number
+          id?: string
+          nama_catering?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      destinations: {
+        Row: {
+          created_at: string
+          deskripsi: string | null
+          durasi_standar: number | null
+          estimasi_biaya: number | null
+          id: string
+          kategori: string | null
+          lokasi: string | null
+          nama_destinasi: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deskripsi?: string | null
+          durasi_standar?: number | null
+          estimasi_biaya?: number | null
+          id?: string
+          kategori?: string | null
+          lokasi?: string | null
+          nama_destinasi: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deskripsi?: string | null
+          durasi_standar?: number | null
+          estimasi_biaya?: number | null
+          id?: string
+          kategori?: string | null
+          lokasi?: string | null
+          nama_destinasi?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      htm_notes: {
+        Row: {
+          created_at: string
+          destination_id: string | null
+          guru_dapat_cashback: boolean | null
+          harga_per_orang: number
+          id: string
+          nama_destinasi: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          destination_id?: string | null
+          guru_dapat_cashback?: boolean | null
+          harga_per_orang: number
+          id?: string
+          nama_destinasi: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          destination_id?: string | null
+          guru_dapat_cashback?: boolean | null
+          harga_per_orang?: number
+          id?: string
+          nama_destinasi?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "htm_notes_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      keuangan: {
+        Row: {
+          cashback: number | null
+          created_at: string | null
+          id: string
+          jenis: string
+          jumlah: number
+          keterangan: string | null
+          tanggal: string | null
+          trip_id: string
+          user_id: string
+        }
+        Insert: {
+          cashback?: number | null
+          created_at?: string | null
+          id?: string
+          jenis: string
+          jumlah: number
+          keterangan?: string | null
+          tanggal?: string | null
+          trip_id: string
+          user_id: string
+        }
+        Update: {
+          cashback?: number | null
+          created_at?: string | null
+          id?: string
+          jenis?: string
+          jumlah?: number
+          keterangan?: string | null
+          tanggal?: string | null
+          trip_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "keuangan_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          id: string
+          trip_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          id?: string
+          trip_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          trip_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notes: {
+        Row: {
+          created_at: string
+          id: string
+          judul: string
+          konten: string
+          trip_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          judul: string
+          konten: string
+          trip_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          judul?: string
+          konten?: string
+          trip_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reminders: {
+        Row: {
+          created_at: string
+          id: string
+          is_done: boolean | null
+          judul: string
+          keterangan: string | null
+          tanggal_waktu: string
+          trip_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_done?: boolean | null
+          judul: string
+          keterangan?: string | null
+          tanggal_waktu: string
+          trip_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_done?: boolean | null
+          judul?: string
+          keterangan?: string | null
+          tanggal_waktu?: string
+          trip_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminders_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rundown_acara: {
+        Row: {
+          created_at: string
+          hari_ke: number
+          id: string
+          jam_mulai: string
+          jam_selesai: string
+          judul_acara: string
+          keterangan: string | null
+          trip_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hari_ke: number
+          id?: string
+          jam_mulai: string
+          jam_selesai: string
+          judul_acara: string
+          keterangan?: string | null
+          trip_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hari_ke?: number
+          id?: string
+          jam_mulai?: string
+          jam_selesai?: string
+          judul_acara?: string
+          keterangan?: string | null
+          trip_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rundown_acara_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_destination_notes: {
+        Row: {
+          created_at: string
+          destinasi_1: string | null
+          destinasi_2: string | null
+          destinasi_3: string | null
+          destinasi_4: string | null
+          destinasi_5: string | null
+          destinasi_6: string | null
+          id: string
+          trip_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          destinasi_1?: string | null
+          destinasi_2?: string | null
+          destinasi_3?: string | null
+          destinasi_4?: string | null
+          destinasi_5?: string | null
+          destinasi_6?: string | null
+          id?: string
+          trip_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          destinasi_1?: string | null
+          destinasi_2?: string | null
+          destinasi_3?: string | null
+          destinasi_4?: string | null
+          destinasi_5?: string | null
+          destinasi_6?: string | null
+          id?: string
+          trip_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_destination_notes_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_destinations: {
+        Row: {
+          catatan: string | null
+          created_at: string
+          destination_id: string
+          hari_ke: number
+          id: string
+          jam_mulai: string | null
+          jam_selesai: string | null
+          status: string | null
+          trip_id: string
+          urutan: number
+          user_id: string
+        }
+        Insert: {
+          catatan?: string | null
+          created_at?: string
+          destination_id: string
+          hari_ke: number
+          id?: string
+          jam_mulai?: string | null
+          jam_selesai?: string | null
+          status?: string | null
+          trip_id: string
+          urutan?: number
+          user_id: string
+        }
+        Update: {
+          catatan?: string | null
+          created_at?: string
+          destination_id?: string
+          hari_ke?: number
+          id?: string
+          jam_mulai?: string | null
+          jam_selesai?: string | null
+          status?: string | null
+          trip_id?: string
+          urutan?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trip_price_notes: {
+        Row: {
+          created_at: string
+          id: string
+          jumlah: number
+          keterangan: string
+          trip_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          jumlah: number
+          keterangan: string
+          trip_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          jumlah?: number
+          keterangan?: string
+          trip_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_price_notes_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trips: {
+        Row: {
+          budget_estimasi: number | null
+          catatan: string | null
+          created_at: string | null
+          id: string
+          jumlah_penumpang: number | null
+          nama_driver: string | null
+          nama_kendaraan: string | null
+          nama_trip: string
+          nomor_polisi: string | null
+          tanggal: string
+          tanggal_selesai: string | null
+          tujuan: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          budget_estimasi?: number | null
+          catatan?: string | null
+          created_at?: string | null
+          id?: string
+          jumlah_penumpang?: number | null
+          nama_driver?: string | null
+          nama_kendaraan?: string | null
+          nama_trip: string
+          nomor_polisi?: string | null
+          tanggal: string
+          tanggal_selesai?: string | null
+          tujuan: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          budget_estimasi?: number | null
+          catatan?: string | null
+          created_at?: string | null
+          id?: string
+          jumlah_penumpang?: number | null
+          nama_driver?: string | null
+          nama_kendaraan?: string | null
+          nama_trip?: string
+          nomor_polisi?: string | null
+          tanggal?: string
+          tanggal_selesai?: string | null
+          tujuan?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

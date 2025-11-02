@@ -4,12 +4,13 @@ import { useNavigate } from "react-router-dom";
 import AuthGuard from "@/components/AuthGuard";
 import BottomNav from "@/components/BottomNav";
 import DestinationDialog from "@/components/DestinationDialog";
+import { TripExpandableCard } from "@/components/TripExpandableCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Calendar, MapPin, Search, Pencil, Trash2, Clock, DollarSign } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Clock, DollarSign, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { toast } from "sonner";
@@ -20,6 +21,8 @@ interface Trip {
   tanggal: string;
   tujuan: string;
   catatan: string | null;
+  nama_kendaraan?: string;
+  jumlah_penumpang?: number;
 }
 
 interface Destination {
@@ -251,29 +254,11 @@ const Trips = () => {
                       </h3>
                       <div className="space-y-3">
                         {monthTrips.map((trip) => (
-                          <div
+                          <TripExpandableCard
                             key={trip.id}
+                            trip={trip}
                             onClick={() => navigate(`/trips/${trip.id}`)}
-                            className="ios-card p-4 cursor-pointer hover:shadow-lg transition-shadow animate-slide-up"
-                          >
-                            <h3 className="font-semibold text-lg mb-2">{trip.nama_trip}</h3>
-
-                            <div className="flex items-center text-sm text-muted-foreground mb-1">
-                              <Calendar className="w-4 h-4 mr-2" />
-                              {format(new Date(trip.tanggal), "dd MMMM yyyy", { locale: id })}
-                            </div>
-
-                            <div className="flex items-center text-sm text-muted-foreground">
-                              <MapPin className="w-4 h-4 mr-2" />
-                              {trip.tujuan}
-                            </div>
-
-                            {trip.catatan && (
-                              <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                                {trip.catatan}
-                              </p>
-                            )}
-                          </div>
+                          />
                         ))}
                       </div>
                     </div>
