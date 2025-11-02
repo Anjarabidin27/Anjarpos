@@ -16,6 +16,7 @@ import Laporan from "./pages/Laporan";
 import Destinations from "./pages/Destinations";
 import SelectDestinations from "./pages/SelectDestinations";
 import Notes from "./pages/Notes";
+import NotesNew from "./pages/NotesNew";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/destinations" element={<Destinations />} />
           <Route path="/destinations/select" element={<SelectDestinations />} />
           <Route path="/notes" element={<Notes />} />
+          <Route path="/notesnew" element={<NotesNew />} />
           <Route path="/keuangan" element={<Keuangan />} />
           <Route path="/keuangan/new" element={<NewKeuangan />} />
           <Route path="/laporan" element={<Laporan />} />
