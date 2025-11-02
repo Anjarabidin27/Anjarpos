@@ -101,20 +101,31 @@ const Dashboard = () => {
 
       setUser(user);
 
-      const today = new Date();
-      const todayStr = format(today, "yyyy-MM-dd");
-
-      const { data: tripsData, error: tripsError } = await supabase
+      // Load ALL trips to check if any trips exist
+      const { data: allTripsData, error: allTripsError } = await supabase
         .from("trips")
         .select("*")
         .eq("user_id", user.id)
-        .or(`tanggal.gte.${todayStr},tanggal_selesai.gte.${todayStr}`)
-        .order("tanggal", { ascending: true });
+        .order("tanggal", { ascending: false });
 
-      if (tripsError) throw tripsError;
-      setTrips(tripsData || []);
+      if (allTripsError) throw allTripsError;
 
-      const ongoing = tripsData?.find((trip) => {
+      const allTrips = allTripsData || [];
+      
+      // Find upcoming or ongoing trips
+      const today = new Date();
+      const todayStr = format(today, "yyyy-MM-dd");
+      
+      const upcomingTrips = allTrips.filter((trip) => {
+        const start = new Date(trip.tanggal);
+        const end = trip.tanggal_selesai ? new Date(trip.tanggal_selesai) : start;
+        return end >= today;
+      }).sort((a, b) => new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime());
+
+      setTrips(upcomingTrips);
+
+      // Find ongoing or upcoming trip
+      const ongoing = upcomingTrips.find((trip) => {
         const start = new Date(trip.tanggal);
         const end = trip.tanggal_selesai ? new Date(trip.tanggal_selesai) : start;
         return today >= start && today <= end;
@@ -122,9 +133,11 @@ const Dashboard = () => {
 
       if (ongoing) {
         setCurrentTrip(ongoing);
-      } else {
-        const upcoming = tripsData?.find((trip) => new Date(trip.tanggal) >= today);
-        setCurrentTrip(upcoming || null);
+      } else if (upcomingTrips.length > 0) {
+        setCurrentTrip(upcomingTrips[0]);
+      } else if (allTrips.length > 0) {
+        // If no upcoming trips, show the most recent past trip
+        setCurrentTrip(allTrips[0]);
       }
 
       const { data: remindersData } = await supabase

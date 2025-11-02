@@ -166,6 +166,26 @@ const Trips = () => {
     return matchName || matchTujuan || matchDate;
   });
 
+  // Group trips by month and year
+  const groupedTrips = filteredTrips.reduce((acc, trip) => {
+    const monthYear = format(new Date(trip.tanggal), "MMMM yyyy", { locale: id });
+    if (!acc[monthYear]) {
+      acc[monthYear] = [];
+    }
+    acc[monthYear].push(trip);
+    return acc;
+  }, {} as Record<string, Trip[]>);
+
+  // Group destinations by city (lokasi)
+  const groupedDestinations = destinations.reduce((acc, dest) => {
+    const city = dest.lokasi.split(',')[0].trim(); // Get first part before comma
+    if (!acc[city]) {
+      acc[city] = [];
+    }
+    acc[city].push(dest);
+    return acc;
+  }, {} as Record<string, Destination[]>);
+
   return (
     <AuthGuard>
       <div className="min-h-screen bg-background pb-20 safe-top">
@@ -223,30 +243,39 @@ const Trips = () => {
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {filteredTrips.map((trip) => (
-                    <div
-                      key={trip.id}
-                      onClick={() => navigate(`/trips/${trip.id}`)}
-                      className="ios-card p-4 cursor-pointer hover:shadow-lg transition-shadow animate-slide-up"
-                    >
-                      <h3 className="font-semibold text-lg mb-2">{trip.nama_trip}</h3>
+                <div className="space-y-6">
+                  {Object.entries(groupedTrips).map(([monthYear, monthTrips]) => (
+                    <div key={monthYear}>
+                      <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase">
+                        {monthYear}
+                      </h3>
+                      <div className="space-y-3">
+                        {monthTrips.map((trip) => (
+                          <div
+                            key={trip.id}
+                            onClick={() => navigate(`/trips/${trip.id}`)}
+                            className="ios-card p-4 cursor-pointer hover:shadow-lg transition-shadow animate-slide-up"
+                          >
+                            <h3 className="font-semibold text-lg mb-2">{trip.nama_trip}</h3>
 
-                      <div className="flex items-center text-sm text-muted-foreground mb-1">
-                        <Calendar className="w-4 h-4 mr-2" />
-                        {format(new Date(trip.tanggal), "dd MMMM yyyy", { locale: id })}
+                            <div className="flex items-center text-sm text-muted-foreground mb-1">
+                              <Calendar className="w-4 h-4 mr-2" />
+                              {format(new Date(trip.tanggal), "dd MMMM yyyy", { locale: id })}
+                            </div>
+
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <MapPin className="w-4 h-4 mr-2" />
+                              {trip.tujuan}
+                            </div>
+
+                            {trip.catatan && (
+                              <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                                {trip.catatan}
+                              </p>
+                            )}
+                          </div>
+                        ))}
                       </div>
-
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <MapPin className="w-4 h-4 mr-2" />
-                        {trip.tujuan}
-                      </div>
-
-                      {trip.catatan && (
-                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                          {trip.catatan}
-                        </p>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -280,54 +309,64 @@ const Trips = () => {
                   </Button>
                 </Card>
               ) : (
-                <div className="space-y-4">
-                  {destinations.map((dest) => (
-                    <Card key={dest.id} className="p-4">
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-lg mb-1">{dest.nama_destinasi}</h3>
-                          <Badge className={getCategoryColor(dest.kategori)}>
-                            {dest.kategori.charAt(0).toUpperCase() + dest.kategori.slice(1)}
-                          </Badge>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleEditDestination(dest)}
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleDeleteDestination(dest.id)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
+                <div className="space-y-6">
+                  {Object.entries(groupedDestinations).map(([city, cityDestinations]) => (
+                    <div key={city}>
+                      <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase flex items-center">
+                        <MapPin className="w-4 h-4 mr-1" />
+                        {city}
+                      </h3>
+                      <div className="space-y-3">
+                        {cityDestinations.map((dest) => (
+                          <Card key={dest.id} className="p-4">
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-lg mb-1">{dest.nama_destinasi}</h3>
+                                <Badge className={getCategoryColor(dest.kategori)}>
+                                  {dest.kategori.charAt(0).toUpperCase() + dest.kategori.slice(1)}
+                                </Badge>
+                              </div>
+                              <div className="flex gap-1">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => handleEditDestination(dest)}
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => handleDeleteDestination(dest.id)}
+                                  className="text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
 
-                      {dest.deskripsi && (
-                        <p className="text-sm text-muted-foreground mb-3">{dest.deskripsi}</p>
-                      )}
+                            {dest.deskripsi && (
+                              <p className="text-sm text-muted-foreground mb-3">{dest.deskripsi}</p>
+                            )}
 
-                      <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          {dest.lokasi}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {dest.durasi_standar} menit
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <DollarSign className="w-4 h-4" />
-                          {formatRupiah(dest.estimasi_biaya)}
-                        </div>
+                            <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <MapPin className="w-4 h-4" />
+                                {dest.lokasi}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Clock className="w-4 h-4" />
+                                {dest.durasi_standar} menit
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <DollarSign className="w-4 h-4" />
+                                {formatRupiah(dest.estimasi_biaya)}
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
                       </div>
-                    </Card>
+                    </div>
                   ))}
                 </div>
               )}
