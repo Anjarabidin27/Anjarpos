@@ -32,6 +32,12 @@ jobs:
       - name: Generate app icons for Android
         run: npx @capacitor/assets generate --iconBackgroundColor '#0088FF' --iconBackgroundColorDark '#003366' --android
 
+      - name: Verify resources icon (Android)
+        run: |
+          echo "Listing resources/ and generated Android mipmap icons"
+          ls -la resources || true
+          ls -la android/app/src/main/res | sed -n '1,200p' || true
+
       - name: Remove development server config from Capacitor
         run: |
           cat > capacitor.config.ts << 'EOF'
@@ -114,6 +120,12 @@ jobs:
 
       - name: Generate app icons for iOS
         run: npx @capacitor/assets generate --iconBackgroundColor '#0088FF' --iconBackgroundColorDark '#003366' --ios
+
+      - name: Verify resources icon (iOS)
+        run: |
+          echo "Listing resources/ and iOS AppIcon set"
+          ls -la resources || true
+          ls -la ios/App/App/Assets.xcassets/AppIcon.appiconset || true
 
       - name: Remove development server config from Capacitor
         run: |
