@@ -182,6 +182,10 @@ const Dashboard = () => {
   };
 
   const handleAddTrip = async () => {
+    if (!newTripData.nama_trip || !newTripData.tanggal || !newTripData.tujuan) {
+      toast.error("Mohon isi semua field yang wajib");
+      return;
+    }
     try {
       const { data: tripData, error } = await supabase.from("trips").insert({
         user_id: user.id,
@@ -217,6 +221,10 @@ const Dashboard = () => {
 
   const handleQuickExpense = async () => {
     if (!currentTrip || !user) return;
+    if (!quickExpenseData.keterangan || !quickExpenseData.jumlah) {
+      toast.error("Mohon isi keterangan dan jumlah");
+      return;
+    }
 
     try {
       const jumlahNumber = Number(quickExpenseData.jumlah.replace(/\./g, "").replace(/,/g, ".")) || 0;

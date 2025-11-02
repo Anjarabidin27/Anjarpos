@@ -4,8 +4,10 @@ import { useNavigate } from "react-router-dom";
 import AuthGuard from "@/components/AuthGuard";
 import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Calendar, TrendingUp, TrendingDown } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Plus, Calendar, TrendingUp, TrendingDown, Search, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { formatRupiah } from "@/lib/utils";
@@ -28,6 +30,8 @@ const Keuangan = () => {
   const [trips, setTrips] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterMonth, setFilterMonth] = useState<string>("current");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [expandedTrips, setExpandedTrips] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadKeuangan();
@@ -121,28 +125,43 @@ const Keuangan = () => {
       return acc;
     }, {} as Record<string, { trip_id: string; trip_name: string; trip_date: string; pemasukan: number; pengeluaran: number; saldo: number }>)
   ).map(([_, summary]) => summary)
+   .filter((summary) => 
+     searchQuery === "" || 
+     summary.trip_name.toLowerCase().includes(searchQuery.toLowerCase())
+   )
    .sort((a, b) => new Date(b.trip_date).getTime() - new Date(a.trip_date).getTime());
+
+  const toggleTrip = (tripId: string) => {
+    const newExpanded = new Set(expandedTrips);
+    if (newExpanded.has(tripId)) {
+      newExpanded.delete(tripId);
+    } else {
+      newExpanded.add(tripId);
+    }
+    setExpandedTrips(newExpanded);
+  };
 
   return (
     <AuthGuard>
       <div className="min-h-screen bg-background pb-20 safe-top">
-        <div className="max-w-4xl mx-auto p-4">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold">Keuangan</h1>
+        <div className="max-w-2xl mx-auto p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-bold">Keuangan</h1>
             <Button
               onClick={() => navigate("/keuangan/new")}
-              className="gradient-primary text-white"
-              size="icon"
+              className="gradient-primary text-white h-9"
+              size="sm"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-4 h-4 mr-1" />
+              Tambah
             </Button>
           </div>
 
-          {/* Month Filter */}
-          <div className="mb-6">
+          {/* Compact Filters */}
+          <div className="flex gap-2 mb-3">
             <Select value={filterMonth} onValueChange={setFilterMonth}>
-              <SelectTrigger className="w-full md:w-[250px]">
-                <SelectValue placeholder="Filter Bulan" />
+              <SelectTrigger className="w-32 h-9">
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="current">Bulan Ini</SelectItem>
@@ -150,26 +169,33 @@ const Keuangan = () => {
                 <SelectItem value="all">Semua</SelectItem>
               </SelectContent>
             </Select>
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Cari trip..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 h-9"
+              />
+            </div>
           </div>
 
-          {/* Stats Cards - Completed vs Upcoming */}
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
-            <div className="ios-card p-5 bg-gradient-to-br from-green-50 to-green-100">
-              <div className="flex items-center mb-2">
-                <TrendingUp className="w-5 h-5 text-green-600 mr-2" />
-                <h3 className="font-semibold text-sm">Trip Selesai</h3>
+          {/* Compact Stats Cards */}
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="ios-card p-3 bg-green-50">
+              <div className="flex items-center gap-1 mb-1">
+                <TrendingUp className="w-3 h-3 text-green-600" />
+                <p className="text-xs text-muted-foreground">Selesai</p>
               </div>
-              <p className="text-3xl font-bold text-green-600">{completedTrips.length}</p>
-              <p className="text-xs text-muted-foreground mt-1">Total trip yang sudah dilaksanakan</p>
+              <p className="text-2xl font-bold text-green-600">{completedTrips.length}</p>
             </div>
 
-            <div className="ios-card p-5 bg-gradient-to-br from-blue-50 to-blue-100">
-              <div className="flex items-center mb-2">
-                <Calendar className="w-5 h-5 text-blue-600 mr-2" />
-                <h3 className="font-semibold text-sm">Trip Mendatang</h3>
+            <div className="ios-card p-3 bg-blue-50">
+              <div className="flex items-center gap-1 mb-1">
+                <Calendar className="w-3 h-3 text-blue-600" />
+                <p className="text-xs text-muted-foreground">Mendatang</p>
               </div>
-              <p className="text-3xl font-bold text-blue-600">{upcomingTrips.length}</p>
-              <p className="text-xs text-muted-foreground mt-1">Trip yang akan datang</p>
+              <p className="text-2xl font-bold text-blue-600">{upcomingTrips.length}</p>
             </div>
           </div>
 
@@ -195,45 +221,59 @@ const Keuangan = () => {
             </div>
           ) : (
             <div>
-              <h2 className="text-lg font-semibold mb-3">Ringkasan Per Trip</h2>
-              <div className="space-y-3">
+              <h2 className="text-base font-semibold mb-2">Ringkasan Per Trip</h2>
+              <div className="space-y-2">
                 {tripSummaries.map((summary) => (
-                  <div
-                    key={summary.trip_id}
-                    className="ios-card p-4 cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => navigate(`/trips/${summary.trip_id}`)}
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex-1">
-                        <h3 className="font-semibold mb-1">{summary.trip_name}</h3>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(summary.trip_date), "dd MMM yyyy", { locale: id })}
-                        </p>
-                      </div>
-                      {summary.saldo >= 0 ? (
-                        <div className="text-right">
-                          <span className="text-xs text-green-600 font-medium">Untung</span>
-                          <p className="text-lg font-bold text-green-600">{formatRupiah(summary.saldo)}</p>
+                  <Collapsible key={summary.trip_id}>
+                    <div className="ios-card p-3">
+                      <CollapsibleTrigger 
+                        className="w-full flex justify-between items-center"
+                        onClick={() => toggleTrip(summary.trip_id)}
+                      >
+                        <div className="flex-1 text-left">
+                          <h3 className="font-semibold text-sm">{summary.trip_name}</h3>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(summary.trip_date), "dd MMM", { locale: id })}
+                          </p>
                         </div>
-                      ) : (
-                        <div className="text-right">
-                          <span className="text-xs text-red-600 font-medium">Rugi</span>
-                          <p className="text-lg font-bold text-red-600">{formatRupiah(Math.abs(summary.saldo))}</p>
+                        <div className="flex items-center gap-2">
+                          {summary.saldo >= 0 ? (
+                            <div className="text-right">
+                              <p className="text-base font-bold text-green-600">{formatRupiah(summary.saldo)}</p>
+                              <span className="text-[10px] text-green-600">Untung</span>
+                            </div>
+                          ) : (
+                            <div className="text-right">
+                              <p className="text-base font-bold text-red-600">{formatRupiah(Math.abs(summary.saldo))}</p>
+                              <span className="text-[10px] text-red-600">Rugi</span>
+                            </div>
+                          )}
+                          <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expandedTrips.has(summary.trip_id) ? 'rotate-180' : ''}`} />
                         </div>
-                      )}
+                      </CollapsibleTrigger>
+                      
+                      <CollapsibleContent className="mt-3 pt-3 border-t">
+                        <div className="grid grid-cols-2 gap-3 text-xs mb-2">
+                          <div>
+                            <span className="text-muted-foreground">Pemasukan</span>
+                            <p className="font-semibold text-green-600">{formatRupiah(summary.pemasukan)}</p>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Pengeluaran</span>
+                            <p className="font-semibold text-red-600">{formatRupiah(summary.pengeluaran)}</p>
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full h-8 text-xs"
+                          onClick={() => navigate(`/trips/${summary.trip_id}`)}
+                        >
+                          Lihat Detail
+                        </Button>
+                      </CollapsibleContent>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 mt-3 pt-3 border-t text-sm">
-                      <div>
-                        <span className="text-muted-foreground">Pemasukan:</span>
-                        <p className="font-semibold text-green-600">{formatRupiah(summary.pemasukan)}</p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Pengeluaran:</span>
-                        <p className="font-semibold text-red-600">{formatRupiah(summary.pengeluaran)}</p>
-                      </div>
-                    </div>
-                  </div>
+                  </Collapsible>
                 ))}
               </div>
             </div>

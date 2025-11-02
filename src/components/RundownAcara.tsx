@@ -92,8 +92,14 @@ export const RundownAcara = ({ tripId }: RundownAcaraProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return; // Prevent double submission
+    setLoading(true);
+    
     const { data: user } = await supabase.auth.getUser();
-    if (!user.user) return;
+    if (!user.user) {
+      setLoading(false);
+      return;
+    }
 
     const { error } = await supabase.from("rundown_acara").insert({
       trip_id: tripId,
@@ -108,6 +114,7 @@ export const RundownAcara = ({ tripId }: RundownAcaraProps) => {
       setShowAddDialog(false);
       setFormData({ hari_ke: 1, judul_acara: "", jam_mulai: "", jam_selesai: "", keterangan: "" });
     }
+    setLoading(false);
   };
 
   const handleDelete = async (id: string) => {
@@ -122,8 +129,14 @@ export const RundownAcara = ({ tripId }: RundownAcaraProps) => {
 
   const handleAddTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return; // Prevent double submission
+    setLoading(true);
+    
     const { data: user } = await supabase.auth.getUser();
-    if (!user.user) return;
+    if (!user.user) {
+      setLoading(false);
+      return;
+    }
 
     // Convert formatted string to number
     const jumlahNumber = Number(transactionForm.jumlah.replace(/\./g, "").replace(/,/g, ".")) || 0;
@@ -143,6 +156,7 @@ export const RundownAcara = ({ tripId }: RundownAcaraProps) => {
       setShowTransactionDialog(false);
       setTransactionForm({ keterangan: "", jenis: "pengeluaran", jumlah: "" });
     }
+    setLoading(false);
   };
 
   const groupByDay = () => {
@@ -163,14 +177,14 @@ export const RundownAcara = ({ tripId }: RundownAcaraProps) => {
   const groupedRundown = groupByDay();
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Rundown Acara</h2>
+        <h2 className="text-base font-semibold">Rundown Acara</h2>
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              Tambah Jadwal
+            <Button size="sm" className="h-8 text-xs">
+              <Plus className="w-3 h-3 mr-1" />
+              Tambah
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -238,54 +252,54 @@ export const RundownAcara = ({ tripId }: RundownAcaraProps) => {
 
       {Object.keys(groupedRundown).length === 0 ? (
         <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">
-            Belum ada jadwal acara. Tambahkan jadwal untuk trip ini.
+          <CardContent className="py-6 text-center text-sm text-muted-foreground">
+            Belum ada jadwal. Tambahkan jadwal acara.
           </CardContent>
         </Card>
       ) : (
         Object.entries(groupedRundown).map(([day, items]) => (
-          <Card key={day}>
-            <CardHeader>
-              <CardTitle className="text-lg">Hari Ke-{day}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          <Card key={day} className="p-3">
+            <h3 className="text-sm font-semibold mb-2">Hari {day}</h3>
+            <div className="space-y-2">
               {items.map((item) => (
-                <div key={item.id} className="flex items-start justify-between p-3 bg-secondary/50 rounded-lg">
+                <div key={item.id} className="flex items-start gap-2 p-2 bg-secondary/30 rounded text-xs">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Clock className="w-4 h-4 text-primary" />
-                      <span className="font-medium">
-                        {item.jam_mulai.substring(0, 5)} - {item.jam_selesai.substring(0, 5)}
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <Clock className="w-3 h-3 text-primary" />
+                      <span className="font-medium text-xs">
+                        {item.jam_mulai.substring(0, 5)}-{item.jam_selesai.substring(0, 5)}
                       </span>
                     </div>
-                    <h4 className="font-semibold mb-1">{item.judul_acara}</h4>
+                    <p className="font-semibold text-sm">{item.judul_acara}</p>
                     {item.keterangan && (
-                      <p className="text-sm text-muted-foreground">{item.keterangan}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{item.keterangan}</p>
                     )}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1">
                     <Button
                       size="sm"
                       variant="outline"
+                      className="h-7 w-7 p-0"
                       onClick={() => {
                         setSelectedRundown(item.id);
                         setTransactionForm({ ...transactionForm, keterangan: item.judul_acara });
                         setShowTransactionDialog(true);
                       }}
                     >
-                      <DollarSign className="w-4 h-4" />
+                      <DollarSign className="w-3 h-3" />
                     </Button>
                     <Button
                       size="sm"
                       variant="destructive"
+                      className="h-7 w-7 p-0"
                       onClick={() => handleDelete(item.id)}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>
                 </div>
               ))}
-            </CardContent>
+            </div>
           </Card>
         ))
       )}

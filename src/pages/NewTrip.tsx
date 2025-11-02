@@ -30,6 +30,7 @@ const NewTrip = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return; // Prevent double submission
     setLoading(true);
 
     try {
