@@ -228,17 +228,36 @@ const Laporan = () => {
               {filteredTrips.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Tidak ada trip</p>
               ) : (
-                filteredTrips.map((trip) => (
-                  <div key={trip.id} className="flex justify-between items-center text-sm border-b last:border-0 pb-2 last:pb-0">
-                    <div className="flex-1">
-                      <p className="font-medium">{trip.nama_trip}</p>
-                      <p className="text-xs text-muted-foreground">{trip.tujuan}</p>
+                filteredTrips.map((trip) => {
+                  const tripKeuangan = filteredKeuangan.filter(k => k.trip_id === trip.id);
+                  const pemasukan = tripKeuangan
+                    .filter(k => k.jenis === "pemasukan")
+                    .reduce((sum, k) => sum + Number(k.jumlah), 0);
+                  const pengeluaran = tripKeuangan
+                    .filter(k => k.jenis === "pengeluaran")
+                    .reduce((sum, k) => sum + Number(k.jumlah), 0);
+                  const saldo = pemasukan - pengeluaran;
+                  const isProfit = saldo >= 0;
+
+                  return (
+                    <div key={trip.id} className="flex justify-between items-center text-sm border-b last:border-0 pb-2 last:pb-0">
+                      <div className="flex-1">
+                        <p className="font-medium">{trip.nama_trip}</p>
+                        <p className="text-xs text-muted-foreground">{trip.tujuan}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(trip.tanggal), "dd MMM", { locale: id })}
+                          </p>
+                          {saldo !== 0 && (
+                            <span className={`text-xs font-semibold ${isProfit ? "text-green-600" : "text-red-600"}`}>
+                              {isProfit ? "↑" : "↓"} {formatRupiah(Math.abs(saldo))}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(trip.tanggal), "dd MMM", { locale: id })}
-                    </p>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </section>

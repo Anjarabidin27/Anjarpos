@@ -262,39 +262,41 @@ export const RundownAcara = ({ tripId }: RundownAcaraProps) => {
             <h3 className="text-sm font-semibold mb-2">Hari {day}</h3>
             <div className="space-y-2">
               {items.map((item) => (
-                <div key={item.id} className="flex items-start gap-2 p-2 bg-secondary/30 rounded text-xs">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-1 mb-0.5">
-                      <Clock className="w-3 h-3 text-primary" />
-                      <span className="font-medium text-xs">
-                        {item.jam_mulai.substring(0, 5)}-{item.jam_selesai.substring(0, 5)}
-                      </span>
+                <div key={item.id} className="flex items-center justify-between p-3 bg-background border rounded-lg">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="flex items-center justify-center w-16 h-16 rounded-lg bg-primary/10">
+                      <Clock className="w-6 h-6 text-primary" />
                     </div>
-                    <p className="font-semibold text-sm">{item.judul_acara}</p>
-                    {item.keterangan && (
-                      <p className="text-xs text-muted-foreground mt-0.5">{item.keterangan}</p>
-                    )}
+                    <div className="flex-1">
+                      <p className="font-semibold text-base mb-1">{item.judul_acara}</p>
+                      <p className="text-sm text-primary font-medium">
+                        {item.jam_mulai.substring(0, 5)} - {item.jam_selesai.substring(0, 5)}
+                      </p>
+                      {item.keterangan && (
+                        <p className="text-xs text-muted-foreground mt-1">{item.keterangan}</p>
+                      )}
+                    </div>
                   </div>
                   <div className="flex gap-1">
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-7 w-7 p-0"
+                      className="h-8 w-8 p-0"
                       onClick={() => {
                         setSelectedRundown(item.id);
                         setTransactionForm({ ...transactionForm, keterangan: item.judul_acara });
                         setShowTransactionDialog(true);
                       }}
                     >
-                      <DollarSign className="w-3 h-3" />
+                      <DollarSign className="w-4 h-4" />
                     </Button>
                     <Button
                       size="sm"
                       variant="destructive"
-                      className="h-7 w-7 p-0"
+                      className="h-8 w-8 p-0"
                       onClick={() => handleDelete(item.id)}
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
