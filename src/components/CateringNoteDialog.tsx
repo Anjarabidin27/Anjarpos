@@ -56,21 +56,24 @@ export const CateringNoteDialog = ({ open, onOpenChange, note, onSuccess }: Cate
         return Number(formatted.replace(/\./g, "").replace(/,/g, ".")) || 0;
       };
 
-      const data = {
-        user_id: user.id,
-        nama_catering: formData.nama_catering,
+      const judul = `[CATERING] ${formData.nama_catering}`;
+      const konten = JSON.stringify({
         harga_per_snack: unformatRupiah(formData.harga_per_snack),
         catatan: formData.catatan || null,
-      };
+      });
 
       if (note?.id) {
         const { error } = await supabase
-          .from("catering_notes")
-          .update(data)
+          .from("notes")
+          .update({ judul, konten })
           .eq("id", note.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("catering_notes").insert(data);
+        const { error } = await supabase.from("notes").insert({
+          user_id: user.id,
+          judul,
+          konten,
+        });
         if (error) throw error;
       }
 

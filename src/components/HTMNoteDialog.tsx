@@ -60,22 +60,25 @@ export const HTMNoteDialog = ({ open, onOpenChange, note, onSuccess }: HTMNoteDi
         return Number(formatted.replace(/\./g, "").replace(/,/g, ".")) || 0;
       };
 
-      const data = {
-        user_id: user.id,
-        destination_name: formData.destination_name,
+      const judul = `[HTM] ${formData.destination_name}`;
+      const konten = JSON.stringify({
         harga_per_orang: unformatRupiah(formData.harga_per_orang),
         cashback_guru: formData.cashback_guru,
         catatan: formData.catatan || null,
-      };
+      });
 
       if (note?.id) {
         const { error } = await supabase
-          .from("htm_notes")
-          .update(data)
+          .from("notes")
+          .update({ judul, konten })
           .eq("id", note.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("htm_notes").insert(data);
+        const { error } = await supabase.from("notes").insert({
+          user_id: user.id,
+          judul,
+          konten,
+        });
         if (error) throw error;
       }
 

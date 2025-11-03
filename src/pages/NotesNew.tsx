@@ -61,31 +61,15 @@ const NotesNew = () => {
   useEffect(() => {
     loadAllNotes();
 
-    const generalChannel = supabase
-      .channel("general_notes-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "general_notes" }, () =>
-        loadGeneralNotes()
-      )
-      .subscribe();
-
-    const htmChannel = supabase
-      .channel("htm_notes-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "htm_notes" }, () =>
-        loadHTMNotes()
-      )
-      .subscribe();
-
-    const cateringChannel = supabase
-      .channel("catering_notes-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "catering_notes" }, () =>
-        loadCateringNotes()
-      )
+    const channel = supabase
+      .channel("notes-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "notes" }, () => {
+        loadAllNotes();
+      })
       .subscribe();
 
     return () => {
-      supabase.removeChannel(generalChannel);
-      supabase.removeChannel(htmChannel);
-      supabase.removeChannel(cateringChannel);
+      supabase.removeChannel(channel);
     };
   }, []);
 
@@ -100,9 +84,11 @@ const NotesNew = () => {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from("general_notes")
+        .from("notes")
         .select("*")
         .eq("user_id", user.id)
+        .not("judul", "ilike", "[HTM]%")
+        .not("judul", "ilike", "[CATERING]%")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -118,13 +104,25 @@ const NotesNew = () => {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from("htm_notes")
+        .from("notes")
         .select("*")
         .eq("user_id", user.id)
+        .ilike("judul", "[HTM]%")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setHTMNotes(data || []);
+      const mapped = (data || []).map((row: any) => {
+        let payload: any = {};
+        try { payload = JSON.parse(row.konten || "{}"); } catch {}
+        return {
+          id: row.id,
+          destination_name: String(row.judul || "").replace(/^\[HTM\]\s*/, ""),
+          harga_per_orang: Number(payload.harga_per_orang) || 0,
+          cashback_guru: Boolean(payload.cashback_guru),
+          catatan: payload.catatan || null,
+        } as HTMNote;
+      });
+      setHTMNotes(mapped);
     } catch (error: any) {
       console.error("Error loading HTM notes:", error);
     }
@@ -136,13 +134,24 @@ const NotesNew = () => {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from("catering_notes")
+        .from("notes")
         .select("*")
         .eq("user_id", user.id)
+        .ilike("judul", "[CATERING]%")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setCateringNotes(data || []);
+      const mapped = (data || []).map((row: any) => {
+        let payload: any = {};
+        try { payload = JSON.parse(row.konten || "{}"); } catch {}
+        return {
+          id: row.id,
+          nama_catering: String(row.judul || "").replace(/^\[CATERING\]\s*/, ""),
+          harga_per_snack: Number(payload.harga_per_snack) || 0,
+          catatan: payload.catatan || null,
+        } as CateringNote;
+      });
+      setCateringNotes(mapped);
     } catch (error: any) {
       console.error("Error loading catering notes:", error);
     }
@@ -157,13 +166,13 @@ const NotesNew = () => {
 
       if (editingGeneralId) {
         const { error } = await supabase
-          .from("general_notes")
+          .from("notes")
           .update({ judul: generalFormData.judul, konten: generalFormData.konten })
           .eq("id", editingGeneralId);
         if (error) throw error;
         toast.success("Catatan berhasil diperbarui");
       } else {
-        const { error } = await supabase.from("general_notes").insert({
+        const { error } = await supabase.from("notes").insert({
           user_id: user.id,
           judul: generalFormData.judul,
           konten: generalFormData.konten,
@@ -185,7 +194,7 @@ const NotesNew = () => {
     if (!confirm("Hapus catatan ini?")) return;
 
     try {
-      const { error } = await supabase.from("general_notes").delete().eq("id", id);
+      const { error } = await supabase.from("notes").delete().eq("id", id);
       if (error) throw error;
       toast.success("Catatan berhasil dihapus");
     } catch (error: any) {
@@ -198,7 +207,7 @@ const NotesNew = () => {
     if (!confirm("Hapus catatan HTM ini?")) return;
 
     try {
-      const { error } = await supabase.from("htm_notes").delete().eq("id", id);
+      const { error } = await supabase.from("notes").delete().eq("id", id);
       if (error) throw error;
       toast.success("Catatan HTM berhasil dihapus");
     } catch (error: any) {
@@ -211,7 +220,7 @@ const NotesNew = () => {
     if (!confirm("Hapus catatan catering ini?")) return;
 
     try {
-      const { error } = await supabase.from("catering_notes").delete().eq("id", id);
+      const { error } = await supabase.from("notes").delete().eq("id", id);
       if (error) throw error;
       toast.success("Catatan catering berhasil dihapus");
     } catch (error: any) {
