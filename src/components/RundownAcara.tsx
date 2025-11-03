@@ -92,7 +92,7 @@ export const RundownAcara = ({ tripId }: RundownAcaraProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return; // Prevent double submission
+    if (loading) return;
     setLoading(true);
     
     const { data: user } = await supabase.auth.getUser();

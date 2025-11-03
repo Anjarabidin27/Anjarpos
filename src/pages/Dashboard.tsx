@@ -186,6 +186,7 @@ const Dashboard = () => {
       toast.error("Mohon isi semua field yang wajib");
       return;
     }
+    console.log("Adding trip from dashboard:", newTripData);
     try {
       const { data: tripData, error } = await supabase.from("trips").insert({
         user_id: user.id,
@@ -225,6 +226,8 @@ const Dashboard = () => {
       toast.error("Mohon isi keterangan dan jumlah");
       return;
     }
+
+    console.log("Adding quick expense:", quickExpenseData);
 
     try {
       const jumlahNumber = Number(quickExpenseData.jumlah.replace(/\./g, "").replace(/,/g, ".")) || 0;

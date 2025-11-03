@@ -73,8 +73,10 @@ const NewKeuangan = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return; // Prevent double submission
+    if (loading) return;
     setLoading(true);
+
+    console.log("Submitting keuangan:", formData);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
