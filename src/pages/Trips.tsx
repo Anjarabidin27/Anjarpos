@@ -258,6 +258,7 @@ const Trips = () => {
                             key={trip.id}
                             trip={trip}
                             onClick={() => navigate(`/trips/${trip.id}`)}
+                            onTripUpdated={loadTrips}
                           />
                         ))}
                       </div>

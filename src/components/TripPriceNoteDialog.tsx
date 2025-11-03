@@ -3,21 +3,37 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { RupiahInput } from "./RupiahInput";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+interface PriceNote {
+  id: string;
+  keterangan: string;
+  jumlah: string;
+}
 
 interface TripPriceNoteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   tripId: string;
+  note?: PriceNote;
   onSuccess?: () => void;
 }
 
-export const TripPriceNoteDialog = ({ open, onOpenChange, tripId, onSuccess }: TripPriceNoteDialogProps) => {
+export const TripPriceNoteDialog = ({ open, onOpenChange, tripId, note, onSuccess }: TripPriceNoteDialogProps) => {
   const [keterangan, setKeterangan] = useState("");
   const [jumlah, setJumlah] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (note && open) {
+      setKeterangan(note.keterangan);
+      setJumlah(note.jumlah);
+    } else if (!note) {
+      setKeterangan("");
+      setJumlah("");
+    }
+  }, [note, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,20 +43,28 @@ export const TripPriceNoteDialog = ({ open, onOpenChange, tripId, onSuccess }: T
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      const unformatRupiah = (formatted: string): number => {
-        return Number(formatted.replace(/\./g, "").replace(/,/g, ".")) || 0;
-      };
+      if (note?.id) {
+        const { error } = await supabase
+          .from("trip_price_notes")
+          .update({
+            keterangan,
+            jumlah,
+          })
+          .eq("id", note.id);
 
-      const { error } = await supabase.from("trip_price_notes").insert({
-        trip_id: tripId,
-        user_id: user.id,
-        keterangan,
-        jumlah: unformatRupiah(jumlah),
-      });
+        if (error) throw error;
+        toast.success("Catatan harga berhasil diperbarui");
+      } else {
+        const { error } = await supabase.from("trip_price_notes").insert({
+          trip_id: tripId,
+          user_id: user.id,
+          keterangan,
+          jumlah,
+        });
 
-      if (error) throw error;
-
-      toast.success("Catatan harga berhasil ditambahkan");
+        if (error) throw error;
+        toast.success("Catatan harga berhasil ditambahkan");
+      }
       setKeterangan("");
       setJumlah("");
       onOpenChange(false);
@@ -57,7 +81,7 @@ export const TripPriceNoteDialog = ({ open, onOpenChange, tripId, onSuccess }: T
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Tambah Catatan Harga</DialogTitle>
+          <DialogTitle>{note?.id ? "Edit" : "Tambah"} Catatan Harga</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -71,12 +95,17 @@ export const TripPriceNoteDialog = ({ open, onOpenChange, tripId, onSuccess }: T
             />
           </div>
 
-          <RupiahInput
-            label="Jumlah"
-            value={jumlah}
-            onChange={setJumlah}
-            required
-          />
+          <div>
+            <Label htmlFor="jumlah">Jumlah</Label>
+            <Textarea
+              id="jumlah"
+              value={jumlah}
+              onChange={(e) => setJumlah(e.target.value)}
+              placeholder="Bisa berupa nominal atau keterangan"
+              required
+              className="min-h-[80px]"
+            />
+          </div>
 
           <Button type="submit" className="w-full gradient-primary text-white" disabled={loading}>
             {loading ? "Menyimpan..." : "Simpan"}

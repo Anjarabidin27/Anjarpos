@@ -1,19 +1,29 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, Plus, Trash2, Calendar, MapPin, Bus, Users } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Trash2, Calendar, MapPin, Bus, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { formatRupiah } from "@/lib/utils";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { TripPriceNoteDialog } from "./TripPriceNoteDialog";
 import { TripDestinationNoteDialog } from "./TripDestinationNoteDialog";
+import { EditTripDialog } from "./EditTripDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface PriceNote {
   id: string;
   keterangan: string;
-  jumlah: number;
+  jumlah: string;
 }
 
 interface DestinationNote {
@@ -38,15 +48,19 @@ interface Trip {
 interface TripExpandableCardProps {
   trip: Trip;
   onClick: () => void;
+  onTripUpdated?: () => void;
 }
 
-export const TripExpandableCard = ({ trip, onClick }: TripExpandableCardProps) => {
+export const TripExpandableCard = ({ trip, onClick, onTripUpdated }: TripExpandableCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [priceNotes, setPriceNotes] = useState<PriceNote[]>([]);
   const [destinationNote, setDestinationNote] = useState<DestinationNote | null>(null);
   const [loading, setLoading] = useState(false);
   const [priceDialogOpen, setPriceDialogOpen] = useState(false);
   const [destDialogOpen, setDestDialogOpen] = useState(false);
+  const [editTripDialogOpen, setEditTripDialogOpen] = useState(false);
+  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
+  const [editingPriceNote, setEditingPriceNote] = useState<PriceNote | undefined>();
 
   useEffect(() => {
     if (isExpanded) {
@@ -89,8 +103,9 @@ export const TripExpandableCard = ({ trip, onClick }: TripExpandableCardProps) =
     }
   };
 
-  const handleDeletePriceNote = async (id: string) => {
-    if (!confirm("Hapus catatan ini?")) return;
+  const handleDeletePriceNote = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Yakin ingin menghapus catatan harga ini?")) return;
 
     try {
       const { error } = await supabase
@@ -107,7 +122,33 @@ export const TripExpandableCard = ({ trip, onClick }: TripExpandableCardProps) =
     }
   };
 
-  const totalPriceNotes = priceNotes.reduce((sum, note) => sum + Number(note.jumlah), 0);
+  const handleDeleteTrip = async () => {
+    try {
+      const { error } = await supabase
+        .from("trips")
+        .delete()
+        .eq("id", trip.id);
+
+      if (error) throw error;
+      toast.success("Trip berhasil dihapus");
+      onTripUpdated?.();
+    } catch (error: any) {
+      console.error("Error:", error);
+      toast.error("Gagal menghapus trip");
+    }
+  };
+
+  const handleEditPriceNote = (note: PriceNote, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingPriceNote(note);
+    setPriceDialogOpen(true);
+  };
+
+  const handleAddPriceNote = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingPriceNote(undefined);
+    setPriceDialogOpen(true);
+  };
 
   const destinationList = destinationNote
     ? [
@@ -126,7 +167,6 @@ export const TripExpandableCard = ({ trip, onClick }: TripExpandableCardProps) =
         <div
           className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
           onClick={(e) => {
-            // Only expand/collapse if not clicking on buttons
             const target = e.target as HTMLElement;
             if (!target.closest('button')) {
               setIsExpanded(!isExpanded);
@@ -134,8 +174,34 @@ export const TripExpandableCard = ({ trip, onClick }: TripExpandableCardProps) =
           }}
         >
           <div className="flex justify-between items-start">
-            <div className="flex-1" onClick={onClick}>
-              <h3 className="font-semibold text-lg mb-2">{trip.nama_trip}</h3>
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-semibold text-lg" onClick={onClick}>{trip.nama_trip}</h3>
+                <div className="flex gap-1">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditTripDialogOpen(true);
+                    }}
+                    className="h-8 w-8"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteAlertOpen(true);
+                    }}
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
               <div className="flex items-center text-sm text-muted-foreground mb-1">
                 <Calendar className="w-4 h-4 mr-2" />
                 {format(new Date(trip.tanggal), "dd MMMM yyyy", { locale: id })}
@@ -198,15 +264,15 @@ export const TripExpandableCard = ({ trip, onClick }: TripExpandableCardProps) =
             <div className="pt-4 mt-4 border-t">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-medium text-sm">Catatan Harga</h4>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setPriceDialogOpen(true)}
-                  className="h-7 text-xs"
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Tambah
-                </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleAddPriceNote}
+                    className="h-7 text-xs"
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Tambah
+                  </Button>
               </div>
 
               {loading ? (
@@ -217,26 +283,32 @@ export const TripExpandableCard = ({ trip, onClick }: TripExpandableCardProps) =
                 <p className="text-xs text-muted-foreground">Belum ada catatan harga</p>
               ) : (
                 <div className="space-y-2">
-                  {priceNotes.map((note) => (
+                   {priceNotes.map((note) => (
                     <div key={note.id} className="flex items-center justify-between p-2 bg-muted/50 rounded text-sm">
                       <div className="flex-1">
                         <p className="font-medium">{note.keterangan}</p>
-                        <p className="text-primary font-semibold">{formatRupiah(Number(note.jumlah))}</p>
+                        <p className="text-primary font-semibold whitespace-pre-wrap">{note.jumlah}</p>
                       </div>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleDeletePriceNote(note.id)}
-                        className="h-8 w-8 text-destructive"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={(e) => handleEditPriceNote(note, e)}
+                          className="h-8 w-8"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={(e) => handleDeletePriceNote(note.id, e)}
+                          className="h-8 w-8 text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
-                  <div className="pt-2 border-t flex justify-between font-semibold text-sm">
-                    <span>Total:</span>
-                    <span className="text-primary">{formatRupiah(totalPriceNotes)}</span>
-                  </div>
                 </div>
               )}
             </div>
@@ -248,6 +320,7 @@ export const TripExpandableCard = ({ trip, onClick }: TripExpandableCardProps) =
         open={priceDialogOpen}
         onOpenChange={setPriceDialogOpen}
         tripId={trip.id}
+        note={editingPriceNote}
         onSuccess={loadNotes}
       />
 
@@ -257,6 +330,33 @@ export const TripExpandableCard = ({ trip, onClick }: TripExpandableCardProps) =
         tripId={trip.id}
         onSuccess={loadNotes}
       />
+
+      <EditTripDialog
+        open={editTripDialogOpen}
+        onOpenChange={setEditTripDialogOpen}
+        trip={trip}
+        onSuccess={() => {
+          loadNotes();
+          onTripUpdated?.();
+        }}
+      />
+
+      <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Trip</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus trip "{trip.nama_trip}"? Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteTrip} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
