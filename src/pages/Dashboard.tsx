@@ -337,7 +337,7 @@ const Dashboard = () => {
             </Button>
           </div>
           
-          <GreetingHeader />
+          <GreetingHeader onRefresh={loadData} />
 
           {currentTrip ? (
             <div className="mb-6">

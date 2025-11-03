@@ -34,6 +34,22 @@ const Notes = () => {
 
   useEffect(() => {
     loadNotes();
+
+    // Setup realtime subscription
+    const channel = supabase
+      .channel('notes-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notes' },
+        () => {
+          loadNotes();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {

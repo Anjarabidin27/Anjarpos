@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, Plus, Trash2, Calendar, MapPin, Bus, Pencil } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Trash2, Calendar, MapPin, Bus, Pencil, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -166,17 +166,12 @@ export const TripExpandableCard = ({ trip, onClick, onTripUpdated }: TripExpanda
       <Card className="overflow-hidden animate-slide-up">
         <div
           className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-          onClick={(e) => {
-            const target = e.target as HTMLElement;
-            if (!target.closest('button')) {
-              setIsExpanded(!isExpanded);
-            }
-          }}
+          onClick={onClick}
         >
           <div className="flex justify-between items-start">
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-lg" onClick={onClick}>{trip.nama_trip}</h3>
+                <h3 className="font-semibold text-lg">{trip.nama_trip}</h3>
                 <div className="flex gap-1">
                   <Button
                     size="icon"
@@ -200,6 +195,16 @@ export const TripExpandableCard = ({ trip, onClick, onTripUpdated }: TripExpanda
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsExpanded(!isExpanded);
+                    }}
+                  >
+                    {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                  </Button>
                 </div>
               </div>
               <div className="flex items-center text-sm text-muted-foreground mb-1">
@@ -210,25 +215,25 @@ export const TripExpandableCard = ({ trip, onClick, onTripUpdated }: TripExpanda
                 <MapPin className="w-4 h-4 mr-2" />
                 {trip.tujuan}
               </div>
+            </div>
+          </div>
+
+          {isExpanded && (trip.nama_kendaraan || trip.jumlah_penumpang) && (
+            <div className="mt-3 pt-3 border-t">
               {trip.nama_kendaraan && (
-                <div className="flex items-center text-sm text-muted-foreground mt-1">
+                <div className="flex items-center text-sm text-muted-foreground mb-1">
                   <Bus className="w-4 h-4 mr-2" />
                   {trip.nama_kendaraan}
-                  {trip.jumlah_penumpang && ` (${trip.jumlah_penumpang} penumpang)`}
+                </div>
+              )}
+              {trip.jumlah_penumpang && (
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <User className="w-4 h-4 mr-2" />
+                  {trip.jumlah_penumpang} penumpang
                 </div>
               )}
             </div>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsExpanded(!isExpanded);
-              }}
-            >
-              {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-            </Button>
-          </div>
+          )}
         </div>
 
         {isExpanded && (

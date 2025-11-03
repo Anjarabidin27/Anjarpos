@@ -90,7 +90,7 @@ const SelectDestinations = () => {
       if (error) throw error;
 
       toast.success(`${selected.length} destinasi berhasil ditambahkan`);
-      navigate(`/trips/${tripId}`);
+      navigate(`/trips/${tripId}`, { state: { activeTab: 'planning' } });
     } catch (error: any) {
       console.error("Error:", error);
       toast.error("Gagal menyimpan destinasi");

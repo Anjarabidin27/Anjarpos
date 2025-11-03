@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RupiahInput } from "@/components/RupiahInput";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -13,11 +14,11 @@ interface Trip {
   tanggal: string;
   tujuan: string;
   nama_kendaraan?: string;
-  plat_kendaraan?: string;
-  nama_supir?: string;
+  nomor_polisi?: string;
+  nama_driver?: string;
   tanggal_selesai?: string;
   jumlah_penumpang?: number;
-  budget?: number;
+  budget_estimasi?: number;
   catatan?: string;
 }
 
@@ -34,13 +35,14 @@ export const EditTripDialog = ({ open, onOpenChange, trip, onSuccess }: EditTrip
     tanggal: "",
     tujuan: "",
     nama_kendaraan: "",
-    plat_kendaraan: "",
-    nama_supir: "",
+    nomor_polisi: "",
+    nama_driver: "",
     tanggal_selesai: "",
     jumlah_penumpang: "",
-    budget: "",
+    budget_estimasi: "",
     catatan: "",
   });
+  const [budgetFormatted, setBudgetFormatted] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -50,13 +52,14 @@ export const EditTripDialog = ({ open, onOpenChange, trip, onSuccess }: EditTrip
         tanggal: trip.tanggal || "",
         tujuan: trip.tujuan || "",
         nama_kendaraan: trip.nama_kendaraan || "",
-        plat_kendaraan: trip.plat_kendaraan || "",
-        nama_supir: trip.nama_supir || "",
+        nomor_polisi: trip.nomor_polisi || "",
+        nama_driver: trip.nama_driver || "",
         tanggal_selesai: trip.tanggal_selesai || "",
         jumlah_penumpang: trip.jumlah_penumpang?.toString() || "",
-        budget: trip.budget?.toString() || "",
+        budget_estimasi: trip.budget_estimasi?.toString() || "",
         catatan: trip.catatan || "",
       });
+      setBudgetFormatted(trip.budget_estimasi?.toString() || "");
     }
   }, [trip, open]);
 
@@ -65,6 +68,8 @@ export const EditTripDialog = ({ open, onOpenChange, trip, onSuccess }: EditTrip
     setLoading(true);
 
     try {
+      const budgetNumber = budgetFormatted ? Number(budgetFormatted.replace(/\./g, "").replace(/,/g, ".")) : null;
+      
       const { error } = await supabase
         .from("trips")
         .update({
@@ -72,11 +77,11 @@ export const EditTripDialog = ({ open, onOpenChange, trip, onSuccess }: EditTrip
           tanggal: formData.tanggal,
           tujuan: formData.tujuan,
           nama_kendaraan: formData.nama_kendaraan || null,
-          plat_kendaraan: formData.plat_kendaraan || null,
-          nama_supir: formData.nama_supir || null,
+          nomor_polisi: formData.nomor_polisi?.toUpperCase() || null,
+          nama_driver: formData.nama_driver || null,
           tanggal_selesai: formData.tanggal_selesai || null,
           jumlah_penumpang: formData.jumlah_penumpang ? parseInt(formData.jumlah_penumpang) : null,
-          budget: formData.budget ? parseFloat(formData.budget) : null,
+          budget_estimasi: budgetNumber,
           catatan: formData.catatan || null,
         })
         .eq("id", trip.id);
@@ -142,20 +147,22 @@ export const EditTripDialog = ({ open, onOpenChange, trip, onSuccess }: EditTrip
           </div>
 
           <div>
-            <Label htmlFor="plat_kendaraan">Plat Kendaraan (Opsional)</Label>
+            <Label htmlFor="nomor_polisi">Nomor Polisi (Opsional)</Label>
             <Input
-              id="plat_kendaraan"
-              value={formData.plat_kendaraan}
-              onChange={(e) => setFormData({ ...formData, plat_kendaraan: e.target.value })}
+              id="nomor_polisi"
+              value={formData.nomor_polisi}
+              onChange={(e) => setFormData({ ...formData, nomor_polisi: e.target.value.toUpperCase() })}
+              placeholder="B 1234 ABC"
+              style={{ textTransform: 'uppercase' }}
             />
           </div>
 
           <div>
-            <Label htmlFor="nama_supir">Nama Supir (Opsional)</Label>
+            <Label htmlFor="nama_driver">Nama Driver (Opsional)</Label>
             <Input
-              id="nama_supir"
-              value={formData.nama_supir}
-              onChange={(e) => setFormData({ ...formData, nama_supir: e.target.value })}
+              id="nama_driver"
+              value={formData.nama_driver}
+              onChange={(e) => setFormData({ ...formData, nama_driver: e.target.value })}
             />
           </div>
 
@@ -180,12 +187,12 @@ export const EditTripDialog = ({ open, onOpenChange, trip, onSuccess }: EditTrip
           </div>
 
           <div>
-            <Label htmlFor="budget">Budget (Opsional)</Label>
-            <Input
-              id="budget"
-              type="number"
-              value={formData.budget}
-              onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+            <RupiahInput
+              label="Budget Estimasi (Opsional)"
+              value={budgetFormatted}
+              onChange={setBudgetFormatted}
+              placeholder="0"
+              id="budget_estimasi"
             />
           </div>
 

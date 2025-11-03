@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RupiahInput } from "@/components/RupiahInput";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -35,10 +36,12 @@ const DestinationDialog = ({ open, onOpenChange, destination, onSuccess }: Desti
     durasi_standar: 60,
     estimasi_biaya: 0,
   });
+  const [estimasiBiayaFormatted, setEstimasiBiayaFormatted] = useState("");
 
   useEffect(() => {
     if (destination) {
       setFormData(destination);
+      setEstimasiBiayaFormatted(destination.estimasi_biaya?.toString() || "0");
     } else {
       setFormData({
         nama_destinasi: "",
@@ -48,6 +51,7 @@ const DestinationDialog = ({ open, onOpenChange, destination, onSuccess }: Desti
         durasi_standar: 60,
         estimasi_biaya: 0,
       });
+      setEstimasiBiayaFormatted("0");
     }
   }, [destination, open]);
 
@@ -59,10 +63,13 @@ const DestinationDialog = ({ open, onOpenChange, destination, onSuccess }: Desti
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
+      const biayaNumber = Number(estimasiBiayaFormatted.replace(/\./g, "").replace(/,/g, ".")) || 0;
+      const dataToSave = { ...formData, estimasi_biaya: biayaNumber };
+
       if (destination?.id) {
         const { error } = await supabase
           .from("destinations")
-          .update(formData)
+          .update(dataToSave)
           .eq("id", destination.id);
 
         if (error) throw error;
@@ -70,7 +77,7 @@ const DestinationDialog = ({ open, onOpenChange, destination, onSuccess }: Desti
       } else {
         const { error } = await supabase
           .from("destinations")
-          .insert({ ...formData, user_id: user.id });
+          .insert({ ...dataToSave, user_id: user.id });
 
         if (error) throw error;
         toast.success("Destinasi berhasil ditambahkan");
@@ -165,17 +172,13 @@ const DestinationDialog = ({ open, onOpenChange, destination, onSuccess }: Desti
           </div>
 
           <div>
-            <Label htmlFor="biaya">
-              Estimasi Biaya (Rp) <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="biaya"
-              type="number"
-              value={formData.estimasi_biaya}
-              onChange={(e) => setFormData({ ...formData, estimasi_biaya: parseInt(e.target.value) })}
-              min="0"
+            <RupiahInput
+              label="Estimasi Biaya"
+              value={estimasiBiayaFormatted}
+              onChange={setEstimasiBiayaFormatted}
+              placeholder="0"
               required
-              className="border-2"
+              id="biaya"
             />
             <p className="text-xs text-muted-foreground mt-1">💡 Tiket masuk atau biaya rata-rata per orang</p>
           </div>

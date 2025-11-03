@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import FormField from "@/components/FormField";
+import { RupiahInput } from "@/components/RupiahInput";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ArrowLeft, ChevronDown, Bus, Calendar, MapPin, User } from "lucide-react";
 import { toast } from "sonner";
@@ -15,6 +16,7 @@ const NewTrip = () => {
   const [loading, setLoading] = useState(false);
   const [showVehicleDetails, setShowVehicleDetails] = useState(false);
   const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
+  const [budgetFormatted, setBudgetFormatted] = useState("");
   const [formData, setFormData] = useState({
     nama_trip: "",
     tanggal: "",
@@ -23,7 +25,6 @@ const NewTrip = () => {
     catatan: "",
     nama_kendaraan: "",
     jumlah_penumpang: "",
-    budget_estimasi: "",
     nomor_polisi: "",
     nama_driver: "",
   });
@@ -39,6 +40,8 @@ const NewTrip = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
+      const budgetNumber = budgetFormatted ? Number(budgetFormatted.replace(/\./g, "").replace(/,/g, ".")) : null;
+
       const { data, error } = await supabase
         .from("trips")
         .insert({
@@ -49,8 +52,8 @@ const NewTrip = () => {
           catatan: formData.catatan || null,
           nama_kendaraan: formData.nama_kendaraan || null,
           jumlah_penumpang: formData.jumlah_penumpang ? parseInt(formData.jumlah_penumpang) : null,
-          budget_estimasi: formData.budget_estimasi ? parseFloat(formData.budget_estimasi) : null,
-          nomor_polisi: formData.nomor_polisi || null,
+          budget_estimasi: budgetNumber,
+          nomor_polisi: formData.nomor_polisi?.toUpperCase() || null,
           nama_driver: formData.nama_driver || null,
           user_id: user.id,
         })
@@ -61,9 +64,9 @@ const NewTrip = () => {
 
       toast.success("Trip berhasil ditambahkan!");
       
-      // Navigate to select destinations page
+      // Navigate to trip detail page with planning tab
       if (data) {
-        navigate("/destinations/select", { state: { tripId: data.id } });
+        navigate(`/trips/${data.id}`, { state: { activeTab: 'planning' } });
       }
     } catch (error: any) {
       console.error("Error:", error);
@@ -128,6 +131,19 @@ const NewTrip = () => {
                 </div>
 
                 <div>
+                  <Label htmlFor="tanggal_selesai" className="flex items-center gap-2">
+                    Tanggal Selesai <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Opsional</span>
+                  </Label>
+                  <Input
+                    id="tanggal_selesai"
+                    type="date"
+                    value={formData.tanggal_selesai}
+                    onChange={(e) => setFormData({ ...formData, tanggal_selesai: e.target.value })}
+                    className="mt-1 border-2"
+                  />
+                </div>
+
+                <div>
                   <Label htmlFor="tujuan" className="flex items-center gap-2">
                     Tujuan <span className="text-destructive">*</span>
                   </Label>
@@ -164,13 +180,17 @@ const NewTrip = () => {
                     icon={<Bus className="w-4 h-4" />}
                   />
 
-                  <FormField
-                    label="Nomor Polisi"
-                    value={formData.nomor_polisi}
-                    onChange={(value) => setFormData({ ...formData, nomor_polisi: value })}
-                    placeholder="Contoh: B 1234 ABC"
-                    helpText="Berguna untuk dokumentasi dan laporan"
-                  />
+                  <div>
+                    <Label htmlFor="nomor_polisi">Nomor Polisi</Label>
+                    <Input
+                      id="nomor_polisi"
+                      value={formData.nomor_polisi}
+                      onChange={(e) => setFormData({ ...formData, nomor_polisi: e.target.value.toUpperCase() })}
+                      placeholder="B 1234 ABC"
+                      style={{ textTransform: 'uppercase' }}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Berguna untuk dokumentasi dan laporan</p>
+                  </div>
 
                   <FormField
                     label="Nama Driver"
@@ -197,14 +217,6 @@ const NewTrip = () => {
                 
                 <CollapsibleContent className="space-y-4 mt-4">
                   <FormField
-                    label="Tanggal Selesai"
-                    value={formData.tanggal_selesai}
-                    onChange={(value) => setFormData({ ...formData, tanggal_selesai: value })}
-                    type="date"
-                    helpText="Untuk trip multi-hari, tentukan tanggal selesai"
-                  />
-
-                  <FormField
                     label="Jumlah Penumpang"
                     value={formData.jumlah_penumpang}
                     onChange={(value) => setFormData({ ...formData, jumlah_penumpang: value })}
@@ -213,14 +225,14 @@ const NewTrip = () => {
                     helpText="Membantu perencanaan kapasitas dan biaya per orang"
                   />
 
-                  <FormField
-                    label="Budget Estimasi (Rp)"
-                    value={formData.budget_estimasi}
-                    onChange={(value) => setFormData({ ...formData, budget_estimasi: value })}
-                    type="number"
-                    placeholder="Contoh: 5000000"
-                    helpText="Untuk tracking budget vs pengeluaran aktual"
+                  <RupiahInput
+                    label="Budget Estimasi"
+                    value={budgetFormatted}
+                    onChange={setBudgetFormatted}
+                    placeholder="0"
+                    id="budget_estimasi"
                   />
+                  <p className="text-xs text-muted-foreground -mt-3">Untuk tracking budget vs pengeluaran aktual</p>
 
                   <FormField
                     label="Catatan"
@@ -228,7 +240,7 @@ const NewTrip = () => {
                     onChange={(value) => setFormData({ ...formData, catatan: value })}
                     type="textarea"
                     placeholder="Tambahkan catatan trip..."
-                    rows={4}
+                    rows={3}
                     helpText="Catatan khusus atau informasi penting lainnya"
                   />
                 </CollapsibleContent>

@@ -92,6 +92,7 @@ export const TripPriceNoteDialog = ({ open, onOpenChange, tripId, note, onSucces
               onChange={(e) => setKeterangan(e.target.value)}
               placeholder="Contoh: Kasih uang ke kepala sekolah"
               required
+              rows={2}
             />
           </div>
 
@@ -103,7 +104,7 @@ export const TripPriceNoteDialog = ({ open, onOpenChange, tripId, note, onSucces
               onChange={(e) => setJumlah(e.target.value)}
               placeholder="Bisa berupa nominal atau keterangan"
               required
-              className="min-h-[80px]"
+              rows={2}
             />
           </div>
 
