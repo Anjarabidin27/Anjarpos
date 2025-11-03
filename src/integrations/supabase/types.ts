@@ -370,10 +370,15 @@ export type Database = {
       }
       trips: {
         Row: {
+          budget_estimasi: number | null
           catatan: string | null
           created_at: string | null
           id: string
+          jumlah_penumpang: number | null
+          nama_driver: string | null
+          nama_kendaraan: string | null
           nama_trip: string
+          nomor_polisi: string | null
           tanggal: string
           tanggal_selesai: string | null
           tujuan: string
@@ -381,10 +386,15 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          budget_estimasi?: number | null
           catatan?: string | null
           created_at?: string | null
           id?: string
+          jumlah_penumpang?: number | null
+          nama_driver?: string | null
+          nama_kendaraan?: string | null
           nama_trip: string
+          nomor_polisi?: string | null
           tanggal: string
           tanggal_selesai?: string | null
           tujuan: string
@@ -392,10 +402,15 @@ export type Database = {
           user_id: string
         }
         Update: {
+          budget_estimasi?: number | null
           catatan?: string | null
           created_at?: string | null
           id?: string
+          jumlah_penumpang?: number | null
+          nama_driver?: string | null
+          nama_kendaraan?: string | null
           nama_trip?: string
+          nomor_polisi?: string | null
           tanggal?: string
           tanggal_selesai?: string | null
           tujuan?: string
