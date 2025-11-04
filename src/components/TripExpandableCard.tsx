@@ -23,16 +23,11 @@ import {
 interface PriceNote {
   id: string;
   keterangan: string;
-  jumlah: string;
+  jumlah: number;
 }
 
 interface DestinationNote {
-  destinasi_1: string;
-  destinasi_2: string | null;
-  destinasi_3: string | null;
-  destinasi_4: string | null;
-  destinasi_5: string | null;
-  destinasi_6: string | null;
+  catatan: string;
 }
 
 interface Trip {
@@ -150,15 +145,8 @@ export const TripExpandableCard = ({ trip, onClick, onTripUpdated }: TripExpanda
     setPriceDialogOpen(true);
   };
 
-  const destinationList = destinationNote
-    ? [
-        destinationNote.destinasi_1,
-        destinationNote.destinasi_2,
-        destinationNote.destinasi_3,
-        destinationNote.destinasi_4,
-        destinationNote.destinasi_5,
-        destinationNote.destinasi_6,
-      ].filter(Boolean)
+  const destinationList = destinationNote?.catatan
+    ? destinationNote.catatan.split('\n').filter(line => line.trim())
     : [];
 
   return (
@@ -292,7 +280,7 @@ export const TripExpandableCard = ({ trip, onClick, onTripUpdated }: TripExpanda
                     <div key={note.id} className="flex items-center justify-between p-2 bg-muted/50 rounded text-sm">
                       <div className="flex-1">
                         <p className="font-medium">{note.keterangan}</p>
-                        <p className="text-primary font-semibold whitespace-pre-wrap">{note.jumlah}</p>
+                        <p className="text-primary font-semibold">Rp {note.jumlah.toLocaleString()}</p>
                       </div>
                       <div className="flex gap-1">
                         <Button

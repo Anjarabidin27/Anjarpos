@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -14,14 +14,7 @@ interface TripDestinationNoteDialogProps {
 }
 
 export const TripDestinationNoteDialog = ({ open, onOpenChange, tripId, onSuccess }: TripDestinationNoteDialogProps) => {
-  const [destinations, setDestinations] = useState({
-    destinasi_1: "",
-    destinasi_2: "",
-    destinasi_3: "",
-    destinasi_4: "",
-    destinasi_5: "",
-    destinasi_6: "",
-  });
+  const [catatan, setCatatan] = useState("");
   const [loading, setLoading] = useState(false);
   const [noteId, setNoteId] = useState<string | null>(null);
 
@@ -47,14 +40,7 @@ export const TripDestinationNoteDialog = ({ open, onOpenChange, tripId, onSucces
 
       if (data) {
         setNoteId(data.id);
-        setDestinations({
-          destinasi_1: data.destinasi_1 || "",
-          destinasi_2: data.destinasi_2 || "",
-          destinasi_3: data.destinasi_3 || "",
-          destinasi_4: data.destinasi_4 || "",
-          destinasi_5: data.destinasi_5 || "",
-          destinasi_6: data.destinasi_6 || "",
-        });
+        setCatatan(data.catatan || "");
       }
     } catch (error: any) {
       console.error("Error loading note:", error);
@@ -70,19 +56,17 @@ export const TripDestinationNoteDialog = ({ open, onOpenChange, tripId, onSucces
       if (!user) throw new Error("User not authenticated");
 
       if (noteId) {
-        // Update existing
         const { error } = await supabase
           .from("trip_destination_notes")
-          .update(destinations)
+          .update({ catatan })
           .eq("id", noteId);
 
         if (error) throw error;
       } else {
-        // Insert new
         const { error } = await supabase.from("trip_destination_notes").insert({
           trip_id: tripId,
           user_id: user.id,
-          ...destinations,
+          catatan,
         });
 
         if (error) throw error;
@@ -101,33 +85,22 @@ export const TripDestinationNoteDialog = ({ open, onOpenChange, tripId, onSucces
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[80vh] overflow-y-auto">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Catatan Destinasi</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="dest1">Destinasi 1 *</Label>
-            <Input
-              id="dest1"
-              value={destinations.destinasi_1}
-              onChange={(e) => setDestinations({ ...destinations, destinasi_1: e.target.value })}
-              placeholder="Wajib diisi"
+            <Label htmlFor="catatan">Catatan Destinasi</Label>
+            <Textarea
+              id="catatan"
+              value={catatan}
+              onChange={(e) => setCatatan(e.target.value)}
+              placeholder="Masukkan destinasi yang akan dikunjungi (pisahkan dengan enter)"
               required
+              rows={6}
             />
           </div>
-          
-          {[2, 3, 4, 5, 6].map((num) => (
-            <div key={num}>
-              <Label htmlFor={`dest${num}`}>Destinasi {num} (Opsional)</Label>
-              <Input
-                id={`dest${num}`}
-                value={destinations[`destinasi_${num}` as keyof typeof destinations]}
-                onChange={(e) => setDestinations({ ...destinations, [`destinasi_${num}`]: e.target.value })}
-                placeholder="Opsional"
-              />
-            </div>
-          ))}
 
           <Button type="submit" className="w-full gradient-primary text-white" disabled={loading}>
             {loading ? "Menyimpan..." : "Simpan"}

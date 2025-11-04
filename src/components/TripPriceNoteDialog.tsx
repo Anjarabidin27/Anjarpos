@@ -3,13 +3,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface PriceNote {
   id: string;
   keterangan: string;
-  jumlah: string;
+  jumlah: number;
 }
 
 interface TripPriceNoteDialogProps {
@@ -28,7 +29,7 @@ export const TripPriceNoteDialog = ({ open, onOpenChange, tripId, note, onSucces
   useEffect(() => {
     if (note && open) {
       setKeterangan(note.keterangan);
-      setJumlah(note.jumlah);
+      setJumlah(String(note.jumlah));
     } else if (!note) {
       setKeterangan("");
       setJumlah("");
@@ -43,12 +44,18 @@ export const TripPriceNoteDialog = ({ open, onOpenChange, tripId, note, onSucces
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
+      const jumlahNumber = parseFloat(jumlah);
+      if (isNaN(jumlahNumber)) {
+        toast.error("Jumlah harus berupa angka");
+        return;
+      }
+
       if (note?.id) {
         const { error } = await supabase
           .from("trip_price_notes")
           .update({
             keterangan,
-            jumlah,
+            jumlah: jumlahNumber,
           })
           .eq("id", note.id);
 
@@ -59,7 +66,7 @@ export const TripPriceNoteDialog = ({ open, onOpenChange, tripId, note, onSucces
           trip_id: tripId,
           user_id: user.id,
           keterangan,
-          jumlah,
+          jumlah: jumlahNumber,
         });
 
         if (error) throw error;
@@ -97,14 +104,14 @@ export const TripPriceNoteDialog = ({ open, onOpenChange, tripId, note, onSucces
           </div>
 
           <div>
-            <Label htmlFor="jumlah">Jumlah</Label>
-            <Textarea
+            <Label htmlFor="jumlah">Jumlah (Rp)</Label>
+            <Input
               id="jumlah"
+              type="number"
               value={jumlah}
               onChange={(e) => setJumlah(e.target.value)}
-              placeholder="Bisa berupa nominal atau keterangan"
+              placeholder="Masukkan nominal dalam rupiah"
               required
-              rows={2}
             />
           </div>
 
