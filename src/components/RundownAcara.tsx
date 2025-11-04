@@ -252,51 +252,46 @@ export const RundownAcara = ({ tripId }: RundownAcaraProps) => {
 
       {Object.keys(groupedRundown).length === 0 ? (
         <Card>
-          <CardContent className="py-6 text-center text-sm text-muted-foreground">
-            Belum ada jadwal. Tambahkan jadwal acara.
+          <CardContent className="py-4 text-center text-xs text-muted-foreground">
+            Belum ada jadwal acara.
           </CardContent>
         </Card>
       ) : (
         Object.entries(groupedRundown).map(([day, items]) => (
-          <Card key={day} className="p-3">
-            <h3 className="text-sm font-semibold mb-2">Hari {day}</h3>
-            <div className="space-y-2">
+          <Card key={day} className="p-2.5">
+            <h3 className="text-xs font-bold mb-2">Hari {day}</h3>
+            <div className="space-y-1.5">
               {items.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-3 bg-background border rounded-lg">
-                  <div className="flex items-center gap-3 flex-1">
-                    <div className="flex items-center justify-center w-16 h-16 rounded-lg bg-primary/10">
-                      <Clock className="w-6 h-6 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-base mb-1">{item.judul_acara}</p>
-                      <p className="text-sm text-primary font-medium">
-                        {item.jam_mulai.substring(0, 5)} - {item.jam_selesai.substring(0, 5)}
-                      </p>
-                      {item.keterangan && (
-                        <p className="text-xs text-muted-foreground mt-1">{item.keterangan}</p>
-                      )}
-                    </div>
+                <div key={item.id} className="flex items-start gap-2 p-2 bg-background border rounded text-xs">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm truncate">{item.judul_acara}</p>
+                    <p className="text-[10px] text-primary font-medium mt-0.5">
+                      {item.jam_mulai.substring(0, 5)} - {item.jam_selesai.substring(0, 5)}
+                    </p>
+                    {item.keterangan && (
+                      <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{item.keterangan}</p>
+                    )}
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 flex-shrink-0">
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-8 w-8 p-0"
+                      className="h-6 w-6 p-0"
                       onClick={() => {
                         setSelectedRundown(item.id);
                         setTransactionForm({ ...transactionForm, keterangan: item.judul_acara });
                         setShowTransactionDialog(true);
                       }}
                     >
-                      <DollarSign className="w-4 h-4" />
+                      <DollarSign className="w-3 h-3" />
                     </Button>
                     <Button
                       size="sm"
-                      variant="destructive"
-                      className="h-8 w-8 p-0"
+                      variant="ghost"
+                      className="h-6 w-6 p-0"
                       onClick={() => handleDelete(item.id)}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3 text-destructive" />
                     </Button>
                   </div>
                 </div>

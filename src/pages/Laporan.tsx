@@ -204,31 +204,31 @@ const Laporan = () => {
             </div>
           </div>
 
-          {/* Summary Cards - Compact */}
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            <div className="ios-card p-3">
-              <p className="text-xs text-muted-foreground mb-1">Trip Selesai</p>
-              <p className="text-2xl font-bold text-primary">{filteredTrips.length}</p>
+          {/* Summary Cards - Simple */}
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <div className="ios-card p-2.5">
+              <p className="text-[10px] text-muted-foreground mb-0.5">Trip</p>
+              <p className="text-xl font-bold text-primary">{filteredTrips.length}</p>
             </div>
 
-            <div className={`ios-card p-3 ${netResult >= 0 ? "bg-green-50" : "bg-red-50"}`}>
-              <p className="text-xs text-muted-foreground mb-1">
-                {netResult >= 0 ? "Total Untung" : "Total Rugi"}
+            <div className={`ios-card p-2.5 ${netResult >= 0 ? "bg-green-50" : "bg-red-50"}`}>
+              <p className="text-[10px] text-muted-foreground mb-0.5">
+                {netResult >= 0 ? "Untung" : "Rugi"}
               </p>
-              <p className={`text-xl font-bold ${netResult >= 0 ? "text-green-600" : "text-red-600"}`}>
-                {formatRupiah(Math.abs(netResult))}
+              <p className={`text-lg font-bold ${netResult >= 0 ? "text-green-600" : "text-red-600"}`}>
+                Rp {Math.abs(netResult / 1000).toFixed(0)}k
               </p>
             </div>
           </div>
 
           {/* Trips List - Compact */}
-          <section className="mb-4">
-            <h2 className="text-base font-bold mb-2">Riwayat Trip</h2>
-            <div className="ios-card p-3 space-y-2">
-              {filteredTrips.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">Tidak ada trip</p>
-              ) : (
-                filteredTrips.map((trip) => {
+          <section className="mb-3">
+            <h2 className="text-sm font-bold mb-2">Daftar Trip</h2>
+            {filteredTrips.length === 0 ? (
+              <div className="ios-card p-4 text-center text-xs text-muted-foreground">Tidak ada trip</div>
+            ) : (
+              <div className="ios-card p-2.5 space-y-2">
+                {filteredTrips.map((trip) => {
                   const tripKeuangan = filteredKeuangan.filter(k => k.trip_id === trip.id);
                   const pemasukan = tripKeuangan
                     .filter(k => k.jenis === "pemasukan")
@@ -237,41 +237,32 @@ const Laporan = () => {
                     .filter(k => k.jenis === "pengeluaran")
                     .reduce((sum, k) => sum + Number(k.jumlah), 0);
                   const saldo = pemasukan - pengeluaran;
-                  const isProfit = saldo >= 0;
 
                   return (
-                    <div key={trip.id} className="flex justify-between items-start text-sm border-b last:border-0 pb-2 last:pb-0">
+                    <div key={trip.id} className="flex justify-between items-center text-xs border-b last:border-0 pb-2 last:pb-0">
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{trip.nama_trip}</p>
-                        <p className="text-xs text-muted-foreground truncate">{trip.tujuan}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="font-semibold truncate text-sm">{trip.nama_trip}</p>
+                        <p className="text-[10px] text-muted-foreground">
                           {format(new Date(trip.tanggal), "dd MMM", { locale: id })}
                         </p>
                       </div>
-                      {saldo !== 0 && (
-                        <div className="text-right ml-3 flex-shrink-0">
-                          <p className={`text-xs font-semibold ${isProfit ? "text-green-600" : "text-red-600"}`}>
-                            {isProfit ? "↑ Untung" : "↓ Rugi"}
-                          </p>
-                          <p className={`text-sm font-bold ${isProfit ? "text-green-600" : "text-red-600"}`}>
-                            {formatRupiah(Math.abs(saldo))}
-                          </p>
-                        </div>
-                      )}
+                      <div className={`text-right font-bold text-sm ${saldo >= 0 ? "text-green-600" : "text-red-600"}`}>
+                        {saldo >= 0 ? "+" : "-"}Rp {Math.abs(saldo / 1000).toFixed(0)}k
+                      </div>
                     </div>
                   );
-                })
-              )}
-            </div>
+                })}
+              </div>
+            )}
           </section>
 
-          {/* Gallery - Compact Grid */}
+          {/* Gallery - Compact */}
           {filteredMedia.length > 0 && (
             <section>
-              <h2 className="text-base font-bold mb-2">Galeri Foto</h2>
-              <div className="grid grid-cols-3 gap-2">
-                {filteredMedia.map((m) => (
-                  <div key={m.id} className="ios-card overflow-hidden aspect-square">
+              <h2 className="text-sm font-bold mb-2">Galeri</h2>
+              <div className="grid grid-cols-4 gap-1.5">
+                {filteredMedia.slice(0, 12).map((m) => (
+                  <div key={m.id} className="aspect-square rounded overflow-hidden">
                     <img
                       src={getMediaUrl(m.file_path)}
                       alt={m.file_name}
