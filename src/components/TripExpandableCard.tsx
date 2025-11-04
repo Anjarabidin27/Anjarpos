@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, Plus, Trash2, Calendar, MapPin, Bus, Pencil, User } from "lucide-react";
+import { ChevronDown, ChevronUp, Calendar, MapPin } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -152,161 +153,99 @@ export const TripExpandableCard = ({ trip, onClick, onTripUpdated }: TripExpanda
   return (
     <>
       <Card className="overflow-hidden animate-slide-up">
-        <div
-          className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-          onClick={onClick}
-        >
-          <div className="flex justify-between items-start">
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-lg">{trip.nama_trip}</h3>
-                <div className="flex gap-1">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditTripDialogOpen(true);
-                    }}
-                    className="h-8 w-8"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeleteAlertOpen(true);
-                    }}
-                    className="h-8 w-8 text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsExpanded(!isExpanded);
-                    }}
-                  >
-                    {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                  </Button>
-                </div>
-              </div>
-              <div className="flex items-center text-sm text-muted-foreground mb-1">
-                <Calendar className="w-4 h-4 mr-2" />
-                {format(new Date(trip.tanggal), "dd MMMM yyyy", { locale: id })}
-              </div>
-              <div className="flex items-center text-sm text-muted-foreground">
-                <MapPin className="w-4 h-4 mr-2" />
-                {trip.tujuan}
-              </div>
-            </div>
-          </div>
-
-          {isExpanded && (trip.nama_kendaraan || trip.jumlah_penumpang) && (
-            <div className="mt-3 pt-3 border-t">
-              {trip.nama_kendaraan && (
+        <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+          <div className="p-4">
+            <div className="flex justify-between items-start">
+              <div className="flex-1 cursor-pointer" onClick={onClick}>
+                <h3 className="font-semibold text-lg mb-2">{trip.nama_trip}</h3>
                 <div className="flex items-center text-sm text-muted-foreground mb-1">
-                  <Bus className="w-4 h-4 mr-2" />
-                  {trip.nama_kendaraan}
+                  <Calendar className="w-4 h-4 mr-2" />
+                  {format(new Date(trip.tanggal), "dd MMMM yyyy", { locale: id })}
                 </div>
-              )}
-              {trip.jumlah_penumpang && (
                 <div className="flex items-center text-sm text-muted-foreground">
-                  <User className="w-4 h-4 mr-2" />
-                  {trip.jumlah_penumpang} penumpang
+                  <MapPin className="w-4 h-4 mr-2" />
+                  {trip.tujuan}
                 </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {isExpanded && (
-          <div className="border-t px-4 pb-4">
-            {/* Catatan Destinasi Section */}
-            <div className="pt-4">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-sm">Catatan Destinasi</h4>
+              </div>
+              <CollapsibleTrigger asChild>
                 <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setDestDialogOpen(true)}
-                  className="h-7 text-xs"
+                  size="icon"
+                  variant="ghost"
+                  onClick={(e) => e.stopPropagation()}
+                  className="h-8 w-8"
                 >
-                  {destinationNote ? "Edit" : "Tambah"}
+                  {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                 </Button>
-              </div>
-              {destinationList.length > 0 ? (
-                <div className="space-y-1">
-                  {destinationList.map((dest, idx) => (
-                    <div key={idx} className="text-sm flex items-start gap-2">
-                      <span className="text-muted-foreground">{idx + 1}.</span>
-                      <span>{dest}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-muted-foreground">Belum ada catatan destinasi</p>
-              )}
+              </CollapsibleTrigger>
             </div>
 
-            {/* Catatan Harga Section */}
-            <div className="pt-4 mt-4 border-t">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-sm">Catatan Harga</h4>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleAddPriceNote}
-                    className="h-7 text-xs"
-                  >
-                    <Plus className="w-3 h-3 mr-1" />
-                    Tambah
-                  </Button>
-              </div>
-
-              {loading ? (
-                <div className="text-center py-4">
-                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent mx-auto"></div>
-                </div>
-              ) : priceNotes.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Belum ada catatan harga</p>
-              ) : (
-                <div className="space-y-2">
-                   {priceNotes.map((note) => (
-                    <div key={note.id} className="flex items-center justify-between p-2 bg-muted/50 rounded text-sm">
-                      <div className="flex-1">
-                        <p className="font-medium">{note.keterangan}</p>
-                        <p className="text-primary font-semibold">Rp {note.jumlah.toLocaleString()}</p>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={(e) => handleEditPriceNote(note, e)}
-                          className="h-8 w-8"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={(e) => handleDeletePriceNote(note.id, e)}
-                          className="h-8 w-8 text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+            <CollapsibleContent>
+              <div className="pt-4 space-y-4">
+                {/* Catatan Destinasi Section */}
+                <div className="border-t pt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-sm">Catatan Destinasi</h4>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDestDialogOpen(true);
+                      }}
+                      className="h-7 text-xs"
+                    >
+                      {destinationNote ? "Edit" : "Tambah"}
+                    </Button>
+                  </div>
+                  {destinationList.length > 0 ? (
+                    <div className="space-y-1">
+                      {destinationList.map((dest, idx) => (
+                        <div key={idx} className="text-sm flex items-start gap-2">
+                          <span className="text-muted-foreground">{idx + 1}.</span>
+                          <span>{dest}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Belum ada catatan destinasi</p>
+                  )}
                 </div>
-              )}
-            </div>
+
+                {/* Catatan Harga Section */}
+                <div className="border-t pt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-sm">Catatan Harga</h4>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleAddPriceNote}
+                      className="h-7 text-xs"
+                    >
+                      Tambah
+                    </Button>
+                  </div>
+
+                  {loading ? (
+                    <div className="text-center py-4">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent mx-auto"></div>
+                    </div>
+                  ) : priceNotes.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">Belum ada catatan harga</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {priceNotes.map((note) => (
+                        <div key={note.id} className="text-sm p-2 bg-muted/30 rounded">
+                          <p className="font-medium">{note.keterangan}</p>
+                          <p className="text-primary font-semibold text-xs">Rp {note.jumlah.toLocaleString()}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CollapsibleContent>
           </div>
-        )}
+        </Collapsible>
       </Card>
 
       <TripPriceNoteDialog
