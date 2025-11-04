@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut, Bell, Plus, DollarSign, FileDown, Share2, RefreshCw } from "lucide-react";
+import { LogOut, Bell, Plus, DollarSign, FileDown, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
@@ -321,34 +321,23 @@ const Dashboard = () => {
         <div className="max-w-lg mx-auto p-4">
           <div className="flex items-center justify-between mb-4">
             <AnimatedHeader />
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={loadData}
-                className="rounded-2xl hover:bg-accent transition-all hover:scale-105"
-                title="Refresh"
-              >
-                <RefreshCw className="w-6 h-6" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowReminder(true)}
-                className="relative rounded-2xl hover:bg-accent transition-all hover:scale-105"
-                title="Pengingat"
-              >
-                <Bell className="w-6 h-6" />
-                {activeRemindersCount > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full animate-pulse">
-                    {activeRemindersCount}
-                  </Badge>
-                )}
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowReminder(true)}
+              className="relative rounded-2xl hover:bg-accent transition-all hover:scale-105"
+              title="Pengingat"
+            >
+              <Bell className="w-6 h-6" />
+              {activeRemindersCount > 0 && (
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full animate-pulse">
+                  {activeRemindersCount}
+                </Badge>
+              )}
+            </Button>
           </div>
           
-          <GreetingHeader />
+          <GreetingHeader onRefresh={loadData} />
 
           {currentTrip ? (
             <div className="mb-6">

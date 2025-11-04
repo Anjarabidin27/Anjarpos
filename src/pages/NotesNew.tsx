@@ -5,8 +5,7 @@ import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { Plus, Trash2, Pencil, Search, ChevronDown, ChevronUp } from "lucide-react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Plus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
@@ -45,8 +44,6 @@ const NotesNew = () => {
   const [htmNotes, setHTMNotes] = useState<HTMNote[]>([]);
   const [cateringNotes, setCateringNotes] = useState<CateringNote[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchGeneral, setSearchGeneral] = useState("");
-  const [searchHTM, setSearchHTM] = useState("");
 
   // Dialog states
   const [generalDialogOpen, setGeneralDialogOpen] = useState(false);
@@ -271,88 +268,48 @@ const NotesNew = () => {
                 <div className="text-center py-12">
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
                 </div>
+              ) : generalNotes.length === 0 ? (
+                <Card className="p-8 text-center">
+                  <p className="text-muted-foreground">Belum ada catatan umum</p>
+                </Card>
               ) : (
-                <>
-                  <div className="relative mb-4">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Cari catatan..."
-                      value={searchGeneral}
-                      onChange={(e) => setSearchGeneral(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  
-                  {generalNotes.filter(note => 
-                    note.judul.toLowerCase().includes(searchGeneral.toLowerCase()) ||
-                    note.konten.toLowerCase().includes(searchGeneral.toLowerCase())
-                  ).length === 0 ? (
-                    <Card className="p-8 text-center">
-                      <p className="text-muted-foreground">Tidak ada catatan yang cocok</p>
+                <div className="space-y-3">
+                  {generalNotes.map((note) => (
+                    <Card key={note.id} className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold">{note.judul}</h3>
+                        <div className="flex gap-1">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => openEditGeneral(note)}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => handleDeleteGeneral(note.id)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {note.konten}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {format(new Date(note.created_at), "dd MMM yyyy, HH:mm", { locale: id })}
+                      </p>
                     </Card>
-                  ) : (
-                    <div className="space-y-3">
-                      {generalNotes.filter(note =>
-                        note.judul.toLowerCase().includes(searchGeneral.toLowerCase()) ||
-                        note.konten.toLowerCase().includes(searchGeneral.toLowerCase())
-                      ).map((note) => (
-                        <Card key={note.id} className="p-4">
-                          <Collapsible>
-                            <div className="flex justify-between items-start mb-2">
-                              <h3 className="font-semibold flex-1">{note.judul}</h3>
-                              <div className="flex gap-1">
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => openEditGeneral(note)}
-                                >
-                                  <Pencil className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => handleDeleteGeneral(note.id)}
-                                  className="text-destructive"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                                <CollapsibleTrigger asChild>
-                                  <Button size="icon" variant="ghost">
-                                    <ChevronDown className="w-4 h-4" />
-                                  </Button>
-                                </CollapsibleTrigger>
-                              </div>
-                            </div>
-                            <CollapsibleContent>
-                              <p className="text-sm text-muted-foreground whitespace-pre-wrap line-clamp-2 mb-2">
-                                {note.konten}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {format(new Date(note.created_at), "dd MMM yyyy, HH:mm", { locale: id })}
-                              </p>
-                            </CollapsibleContent>
-                          </Collapsible>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </>
+                  ))}
+                </div>
               )}
             </TabsContent>
 
             <TabsContent value="htm" className="space-y-4">
               <h2 className="text-lg font-semibold mb-4">Catatan HTM & Catering</h2>
-
-              {/* Search for HTM */}
-              <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Cari HTM atau Catering..."
-                  value={searchHTM}
-                  onChange={(e) => setSearchHTM(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
 
               {/* HTM Section */}
               <div>
@@ -371,17 +328,13 @@ const NotesNew = () => {
                   </Button>
                 </div>
 
-                {htmNotes.filter(note =>
-                  note.destination_name.toLowerCase().includes(searchHTM.toLowerCase())
-                ).length === 0 ? (
+                {htmNotes.length === 0 ? (
                   <Card className="p-6 text-center">
                     <p className="text-sm text-muted-foreground">Belum ada catatan HTM</p>
                   </Card>
                 ) : (
                   <div className="space-y-2">
-                    {htmNotes.filter(note =>
-                      note.destination_name.toLowerCase().includes(searchHTM.toLowerCase())
-                    ).map((note) => (
+                    {htmNotes.map((note) => (
                       <Card key={note.id} className="p-3">
                         <div className="flex justify-between items-start mb-1">
                           <div className="flex-1">
@@ -442,17 +395,13 @@ const NotesNew = () => {
                   </Button>
                 </div>
 
-                {cateringNotes.filter(note =>
-                  note.nama_catering.toLowerCase().includes(searchHTM.toLowerCase())
-                ).length === 0 ? (
+                {cateringNotes.length === 0 ? (
                   <Card className="p-6 text-center">
                     <p className="text-sm text-muted-foreground">Belum ada catatan catering</p>
                   </Card>
                 ) : (
                   <div className="space-y-2">
-                    {cateringNotes.filter(note =>
-                      note.nama_catering.toLowerCase().includes(searchHTM.toLowerCase())
-                    ).map((note) => (
+                    {cateringNotes.map((note) => (
                       <Card key={note.id} className="p-3">
                         <div className="flex justify-between items-start mb-1">
                           <div className="flex-1">
