@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, Calendar, MapPin } from "lucide-react";
+import { ChevronDown, ChevronUp, Calendar, MapPin, Edit, Trash2 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -234,13 +234,59 @@ export const TripExpandableCard = ({ trip, onClick, onTripUpdated }: TripExpanda
                   ) : (
                     <div className="space-y-2">
                       {priceNotes.map((note) => (
-                        <div key={note.id} className="text-sm p-2 bg-muted/30 rounded">
-                          <p className="font-medium">{note.keterangan}</p>
-                          <p className="text-primary font-semibold text-xs">Rp {note.jumlah.toLocaleString()}</p>
+                        <div key={note.id} className="text-sm p-2 bg-muted/30 rounded flex justify-between items-start">
+                          <div className="flex-1">
+                            <p className="font-medium">{note.keterangan}</p>
+                            <p className="text-primary font-semibold text-xs">Rp {note.jumlah.toLocaleString()}</p>
+                          </div>
+                          <div className="flex gap-1 ml-2">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={(e) => handleEditPriceNote(note, e)}
+                              className="h-7 w-7"
+                            >
+                              <span className="text-xs">✏️</span>
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={(e) => handleDeletePriceNote(note.id, e)}
+                              className="h-7 w-7 text-destructive"
+                            >
+                              <span className="text-xs">🗑️</span>
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
                   )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="border-t pt-4 flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditTripDialogOpen(true);
+                    }}
+                    className="flex-1 h-8 text-xs"
+                  >
+                    Edit Trip
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteAlertOpen(true);
+                    }}
+                    className="flex-1 h-8 text-xs"
+                  >
+                    Hapus Trip
+                  </Button>
                 </div>
               </div>
             </CollapsibleContent>

@@ -12,7 +12,8 @@ import { TripDestinationNoteDialog } from "@/components/TripDestinationNoteDialo
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Calendar, MapPin, Plus, StickyNote, Bus, Users } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ArrowLeft, Calendar, MapPin, Plus, StickyNote, Bus, Users, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
@@ -60,6 +61,7 @@ const TripDetail = () => {
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [priceNoteDialogOpen, setPriceNoteDialogOpen] = useState(false);
   const [destNoteDialogOpen, setDestNoteDialogOpen] = useState(false);
+  const [detailsExpanded, setDetailsExpanded] = useState(false);
 
   useEffect(() => {
     if (tripId) {
@@ -210,51 +212,64 @@ const TripDetail = () => {
 
           {/* Trip Header */}
           <div className="ios-card p-5 mb-6">
-            <h1 className="text-2xl font-bold mb-4">{trip.nama_trip}</h1>
-
-            <div className="space-y-2">
-              <div className="flex items-center text-muted-foreground">
-                <Calendar className="w-4 h-4 mr-2" />
-                {format(new Date(trip.tanggal), "dd MMMM yyyy", { locale: id })}
-                {trip.tanggal_selesai && (
-                  <> - {format(new Date(trip.tanggal_selesai), "dd MMMM yyyy", { locale: id })}</>
-                )}
+            <Collapsible open={detailsExpanded} onOpenChange={setDetailsExpanded}>
+              <div className="flex justify-between items-start mb-4">
+                <h1 className="text-2xl font-bold flex-1">{trip.nama_trip}</h1>
+                <CollapsibleTrigger asChild>
+                  <Button size="icon" variant="ghost" className="h-8 w-8">
+                    {detailsExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                  </Button>
+                </CollapsibleTrigger>
               </div>
 
-              <div className="flex items-center text-muted-foreground">
-                <MapPin className="w-4 h-4 mr-2" />
-                {trip.tujuan}
+              <div className="space-y-2">
+                <div className="flex items-center text-muted-foreground">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  {format(new Date(trip.tanggal), "dd MMMM yyyy", { locale: id })}
+                  {trip.tanggal_selesai && (
+                    <> - {format(new Date(trip.tanggal_selesai), "dd MMMM yyyy", { locale: id })}</>
+                  )}
+                </div>
+
+                <div className="flex items-center text-muted-foreground">
+                  <MapPin className="w-4 h-4 mr-2" />
+                  {trip.tujuan}
+                </div>
               </div>
 
-              {trip.nama_kendaraan && (
-                <div className="flex items-center text-muted-foreground">
-                  <Bus className="w-4 h-4 mr-2" />
-                  {trip.nama_kendaraan}
-                  {trip.nomor_polisi && ` - ${trip.nomor_polisi}`}
-                  {trip.nama_driver && ` (Driver: ${trip.nama_driver})`}
-                </div>
-              )}
+              <CollapsibleContent>
+                <div className="space-y-2 mt-2 pt-2 border-t">
+                  {trip.nama_kendaraan && (
+                    <div className="flex items-center text-muted-foreground">
+                      <Bus className="w-4 h-4 mr-2" />
+                      {trip.nama_kendaraan}
+                      {trip.nomor_polisi && ` - ${trip.nomor_polisi}`}
+                      {trip.nama_driver && ` (Driver: ${trip.nama_driver})`}
+                    </div>
+                  )}
 
-              {trip.jumlah_penumpang && (
-                <div className="flex items-center text-muted-foreground">
-                  <Users className="w-4 h-4 mr-2" />
-                  {trip.jumlah_penumpang} penumpang
-                </div>
-              )}
+                  {trip.jumlah_penumpang && (
+                    <div className="flex items-center text-muted-foreground">
+                      <Users className="w-4 h-4 mr-2" />
+                      {trip.jumlah_penumpang} penumpang
+                    </div>
+                  )}
 
-              {trip.budget_estimasi && (
-                <div className="flex items-center text-muted-foreground">
-                  <span className="mr-2">💰</span>
-                  Budget: {formatRupiah(Number(trip.budget_estimasi))}
-                </div>
-              )}
-            </div>
+                  {trip.budget_estimasi && (
+                    <div className="flex items-center text-muted-foreground">
+                      <span className="mr-2">💰</span>
+                      Budget: {formatRupiah(Number(trip.budget_estimasi))}
+                    </div>
+                  )}
 
-            {trip.catatan && (
-              <div className="pt-4 border-t mt-4">
-                <p className="text-sm text-muted-foreground">{trip.catatan}</p>
-              </div>
-            )}
+                  {trip.catatan && (
+                    <div className="pt-2 border-t">
+                      <p className="text-sm text-muted-foreground">{trip.catatan}</p>
+                    </div>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
 
           {/* 5 Navbar Tabs */}
