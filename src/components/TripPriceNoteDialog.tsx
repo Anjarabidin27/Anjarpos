@@ -6,11 +6,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { RupiahInput } from "./RupiahInput";
 
 interface PriceNote {
   id: string;
   keterangan: string;
   jumlah: number;
+  catatan?: string;
 }
 
 interface TripPriceNoteDialogProps {
@@ -24,15 +26,18 @@ interface TripPriceNoteDialogProps {
 export const TripPriceNoteDialog = ({ open, onOpenChange, tripId, note, onSuccess }: TripPriceNoteDialogProps) => {
   const [keterangan, setKeterangan] = useState("");
   const [jumlah, setJumlah] = useState("");
+  const [catatan, setCatatan] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (note && open) {
       setKeterangan(note.keterangan);
       setJumlah(String(note.jumlah));
+      setCatatan(note.catatan || "");
     } else if (!note) {
       setKeterangan("");
       setJumlah("");
+      setCatatan("");
     }
   }, [note, open]);
 
@@ -44,7 +49,12 @@ export const TripPriceNoteDialog = ({ open, onOpenChange, tripId, note, onSucces
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      const jumlahNumber = parseFloat(jumlah);
+      // Parse rupiah format
+      const unformatRupiah = (formatted: string): number => {
+        return Number(formatted.replace(/\./g, "").replace(/,/g, ".")) || 0;
+      };
+
+      const jumlahNumber = unformatRupiah(jumlah);
       if (isNaN(jumlahNumber)) {
         toast.error("Jumlah harus berupa angka");
         return;
@@ -56,6 +66,7 @@ export const TripPriceNoteDialog = ({ open, onOpenChange, tripId, note, onSucces
           .update({
             keterangan,
             jumlah: jumlahNumber,
+            catatan,
           })
           .eq("id", note.id);
 
@@ -67,6 +78,7 @@ export const TripPriceNoteDialog = ({ open, onOpenChange, tripId, note, onSucces
           user_id: user.id,
           keterangan,
           jumlah: jumlahNumber,
+          catatan,
         });
 
         if (error) throw error;
@@ -74,6 +86,7 @@ export const TripPriceNoteDialog = ({ open, onOpenChange, tripId, note, onSucces
       }
       setKeterangan("");
       setJumlah("");
+      setCatatan("");
       onOpenChange(false);
       onSuccess?.();
     } catch (error: any) {
@@ -105,13 +118,20 @@ export const TripPriceNoteDialog = ({ open, onOpenChange, tripId, note, onSucces
 
           <div>
             <Label htmlFor="jumlah">Jumlah (Rp)</Label>
-            <Input
-              id="jumlah"
-              type="number"
+            <RupiahInput
+              label=""
               value={jumlah}
-              onChange={(e) => setJumlah(e.target.value)}
-              placeholder="Masukkan nominal dalam rupiah"
-              required
+              onChange={setJumlah}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="catatan">Catatan (opsional)</Label>
+            <Input
+              id="catatan"
+              value={catatan}
+              onChange={(e) => setCatatan(e.target.value)}
+              placeholder="Contoh: / orang"
             />
           </div>
 

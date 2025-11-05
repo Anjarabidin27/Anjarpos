@@ -45,6 +45,7 @@ interface PriceNote {
   id: string;
   keterangan: string;
   jumlah: number;
+  catatan?: string;
 }
 
 interface DestinationNote {
@@ -276,19 +277,18 @@ const TripDetail = () => {
             </Collapsible>
           </div>
 
-          {/* 6 Navbar Tabs */}
+          {/* 6 Navbar Tabs - Horizontal scroll */}
         <Tabs defaultValue="acuan" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-4">
-              <TabsTrigger value="acuan" className="text-xs">Perencanaan</TabsTrigger>
-              <TabsTrigger value="kendaraan" className="text-xs">Kendaraan</TabsTrigger>
-              <TabsTrigger value="keuangan" className="text-xs">Keuangan</TabsTrigger>
-            </TabsList>
-            
-            <TabsList className="grid w-full grid-cols-3 mb-4">
-              <TabsTrigger value="rundown" className="text-xs">Rundown</TabsTrigger>
-              <TabsTrigger value="catatan" className="text-xs">Catatan</TabsTrigger>
-              <TabsTrigger value="dokumentasi" className="text-xs">Dokumentasi</TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto">
+              <TabsList className="inline-flex w-auto mb-4 gap-1">
+                <TabsTrigger value="acuan" className="text-xs whitespace-nowrap">Perencanaan</TabsTrigger>
+                <TabsTrigger value="kendaraan" className="text-xs whitespace-nowrap">Kendaraan</TabsTrigger>
+                <TabsTrigger value="keuangan" className="text-xs whitespace-nowrap">Keuangan</TabsTrigger>
+                <TabsTrigger value="rundown" className="text-xs whitespace-nowrap">Rundown</TabsTrigger>
+                <TabsTrigger value="catatan" className="text-xs whitespace-nowrap">Catatan</TabsTrigger>
+                <TabsTrigger value="dokumentasi" className="text-xs whitespace-nowrap">Dokumentasi</TabsTrigger>
+              </TabsList>
+            </div>
 
             {/* Tab 1: Acuan / Catatan Sebelum Keberangkatan */}
             <TabsContent value="acuan" className="space-y-4">
@@ -366,7 +366,10 @@ const TripDetail = () => {
                               <div key={note.id} className="p-3 bg-muted/30 rounded flex justify-between items-start">
                                 <div className="flex-1">
                                   <p className="text-sm mb-1">{note.keterangan}</p>
-                                  <p className="text-primary font-semibold">{formatRupiah(Number(note.jumlah))}</p>
+                                  <p className="text-primary font-semibold">
+                                    {formatRupiah(Number(note.jumlah))}
+                                    {note.catatan && <span className="text-muted-foreground font-normal ml-1">{note.catatan}</span>}
+                                  </p>
                                 </div>
                                 <Button
                                   size="sm"
