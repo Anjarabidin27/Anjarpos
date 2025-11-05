@@ -264,10 +264,10 @@ export const RundownAcara = ({ tripId }: RundownAcaraProps) => {
               {items.map((item) => (
                 <div key={item.id} className="flex items-start gap-2 p-2 bg-background border rounded text-xs">
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate">{item.judul_acara}</p>
-                    <p className="text-[10px] text-primary font-medium mt-0.5">
+                    <p className="text-[10px] text-primary font-medium">
                       {item.jam_mulai.substring(0, 5)} - {item.jam_selesai.substring(0, 5)}
                     </p>
+                    <p className="font-semibold text-sm truncate mt-0.5">{item.judul_acara}</p>
                     {item.keterangan && (
                       <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{item.keterangan}</p>
                     )}

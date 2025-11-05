@@ -6,6 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import { RundownAcara } from "@/components/RundownAcara";
 import { TripFinancialTab } from "@/components/TripFinancialTab";
 import { TripDocumentationTab } from "@/components/TripDocumentationTab";
+import { VehicleTab } from "@/components/VehicleTab";
 import NoteDialog from "@/components/NoteDialog";
 import { TripPriceNoteDialog } from "@/components/TripPriceNoteDialog";
 import { TripDestinationNoteDialog } from "@/components/TripDestinationNoteDialog";
@@ -62,6 +63,9 @@ const TripDetail = () => {
   const [priceNoteDialogOpen, setPriceNoteDialogOpen] = useState(false);
   const [destNoteDialogOpen, setDestNoteDialogOpen] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
+  const [editingPriceNote, setEditingPriceNote] = useState<PriceNote | undefined>();
+  const [destNotesExpanded, setDestNotesExpanded] = useState(false);
+  const [priceNotesExpanded, setPriceNotesExpanded] = useState(false);
 
   useEffect(() => {
     if (tripId) {
@@ -272,88 +276,138 @@ const TripDetail = () => {
             </Collapsible>
           </div>
 
-          {/* 5 Navbar Tabs */}
+          {/* 6 Navbar Tabs */}
         <Tabs defaultValue="acuan" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 mb-4 h-auto">
-              <TabsTrigger value="acuan" className="text-xs px-1">Perencanaan</TabsTrigger>
-              <TabsTrigger value="keuangan" className="text-xs px-1">Keuangan</TabsTrigger>
-              <TabsTrigger value="rundown" className="text-xs px-1">Rundown</TabsTrigger>
-              <TabsTrigger value="catatan" className="text-xs px-1">Catatan</TabsTrigger>
-              <TabsTrigger value="dokumentasi" className="text-xs px-1">Dokumentasi</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="acuan" className="text-xs">Perencanaan</TabsTrigger>
+              <TabsTrigger value="kendaraan" className="text-xs">Kendaraan</TabsTrigger>
+              <TabsTrigger value="keuangan" className="text-xs">Keuangan</TabsTrigger>
+            </TabsList>
+            
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="rundown" className="text-xs">Rundown</TabsTrigger>
+              <TabsTrigger value="catatan" className="text-xs">Catatan</TabsTrigger>
+              <TabsTrigger value="dokumentasi" className="text-xs">Dokumentasi</TabsTrigger>
             </TabsList>
 
             {/* Tab 1: Acuan / Catatan Sebelum Keberangkatan */}
             <TabsContent value="acuan" className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-lg font-semibold">Catatan Destinasi</h2>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setDestNoteDialogOpen(true)}
-                  >
-                    {destinationNote ? "Edit" : "Tambah"}
-                  </Button>
-                </div>
-                {destinationList.length > 0 ? (
-                  <Card className="p-4">
-                    <div className="space-y-2">
-                      {destinationList.map((dest, idx) => (
-                        <div key={idx} className="text-sm flex items-start gap-2">
-                          <span className="text-muted-foreground font-medium">{idx + 1}.</span>
-                          <span>{dest}</span>
-                        </div>
-                      ))}
+              <Card className="overflow-hidden">
+                <Collapsible open={destNotesExpanded} onOpenChange={setDestNotesExpanded}>
+                  <div className="p-4">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-lg font-semibold">Catatan Destinasi</h2>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setDestNoteDialogOpen(true)}
+                        >
+                          {destinationNote ? "Edit" : "Tambah"}
+                        </Button>
+                        <CollapsibleTrigger asChild>
+                          <Button size="icon" variant="ghost" className="h-8 w-8">
+                            {destNotesExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          </Button>
+                        </CollapsibleTrigger>
+                      </div>
                     </div>
-                  </Card>
-                ) : (
-                  <Card className="p-6 text-center">
-                    <p className="text-muted-foreground text-sm">Belum ada catatan destinasi</p>
-                  </Card>
-                )}
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-lg font-semibold">Catatan Harga</h2>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setPriceNoteDialogOpen(true)}
-                  >
-                    <Plus className="w-4 h-4 mr-1" />
-                    Tambah
-                  </Button>
-                </div>
-                {priceNotes.length > 0 ? (
-                  <div className="space-y-2">
-                    {priceNotes.map((note) => (
-                      <Card key={note.id} className="p-3">
-                        <p className="text-sm mb-1">{note.keterangan}</p>
-                        <p className="text-primary font-semibold">{formatRupiah(Number(note.jumlah))}</p>
-                      </Card>
-                    ))}
+                    
+                    <CollapsibleContent>
+                      <div className="mt-3">
+                        {destinationList.length > 0 ? (
+                          <div className="space-y-2">
+                            {destinationList.map((dest, idx) => (
+                              <div key={idx} className="text-sm flex items-start gap-2 p-2 bg-muted/30 rounded">
+                                <span className="text-muted-foreground font-medium">{idx + 1}.</span>
+                                <span>{dest}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-muted-foreground text-sm text-center py-4">Belum ada catatan destinasi</p>
+                        )}
+                      </div>
+                    </CollapsibleContent>
                   </div>
-                ) : (
-                  <Card className="p-6 text-center">
-                    <p className="text-muted-foreground text-sm">Belum ada catatan harga</p>
-                  </Card>
-                )}
-              </div>
+                </Collapsible>
+              </Card>
+
+              <Card className="overflow-hidden">
+                <Collapsible open={priceNotesExpanded} onOpenChange={setPriceNotesExpanded}>
+                  <div className="p-4">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-lg font-semibold">Catatan Harga</h2>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingPriceNote(undefined);
+                            setPriceNoteDialogOpen(true);
+                          }}
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Tambah
+                        </Button>
+                        <CollapsibleTrigger asChild>
+                          <Button size="icon" variant="ghost" className="h-8 w-8">
+                            {priceNotesExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          </Button>
+                        </CollapsibleTrigger>
+                      </div>
+                    </div>
+
+                    <CollapsibleContent>
+                      <div className="mt-3">
+                        {priceNotes.length > 0 ? (
+                          <div className="space-y-2">
+                            {priceNotes.map((note) => (
+                              <div key={note.id} className="p-3 bg-muted/30 rounded flex justify-between items-start">
+                                <div className="flex-1">
+                                  <p className="text-sm mb-1">{note.keterangan}</p>
+                                  <p className="text-primary font-semibold">{formatRupiah(Number(note.jumlah))}</p>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setEditingPriceNote(note);
+                                    setPriceNoteDialogOpen(true);
+                                  }}
+                                  className="h-7 px-2 text-xs"
+                                >
+                                  Edit
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-muted-foreground text-sm text-center py-4">Belum ada catatan harga</p>
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </div>
+                </Collapsible>
+              </Card>
             </TabsContent>
 
-            {/* Tab 2: Keuangan */}
+            {/* Tab 2: Kendaraan */}
+            <TabsContent value="kendaraan">
+              <VehicleTab tripId={tripId!} />
+            </TabsContent>
+
+            {/* Tab 3: Keuangan */}
             <TabsContent value="keuangan">
               <TripFinancialTab tripId={tripId!} />
             </TabsContent>
 
-            {/* Tab 3: Rundown */}
+            {/* Tab 4: Rundown */}
             <TabsContent value="rundown">
-              <h2 className="text-lg font-semibold mb-4">Rundown Acara</h2>
               <RundownAcara tripId={tripId!} />
             </TabsContent>
 
-            {/* Tab 4: Catatan Kegiatan */}
+            {/* Tab 5: Catatan Kegiatan */}
             <TabsContent value="catatan" className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Catatan Kegiatan</h2>
@@ -395,7 +449,7 @@ const TripDetail = () => {
               )}
             </TabsContent>
 
-            {/* Tab 5: Dokumentasi */}
+            {/* Tab 6: Dokumentasi */}
             <TabsContent value="dokumentasi">
               <TripDocumentationTab tripId={tripId!} />
             </TabsContent>
@@ -414,6 +468,7 @@ const TripDetail = () => {
           open={priceNoteDialogOpen}
           onOpenChange={setPriceNoteDialogOpen}
           tripId={tripId!}
+          note={editingPriceNote}
           onSuccess={loadPriceNotes}
         />
 

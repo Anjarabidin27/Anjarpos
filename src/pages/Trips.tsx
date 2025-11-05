@@ -203,7 +203,17 @@ const Trips = () => {
 
             <TabsContent value="trips" className="mt-0">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Trip Saya</h2>
+                <div className="flex items-center gap-2 flex-1">
+                  <h2 className="text-lg font-semibold">Trip Saya</h2>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setSearchQuery(searchQuery ? "" : " ")}
+                  >
+                    <Search className="w-4 h-4" />
+                  </Button>
+                </div>
                 <Button
                   onClick={() => navigate("/trips/new")}
                   className="gradient-primary text-white"
@@ -214,16 +224,18 @@ const Trips = () => {
                 </Button>
               </div>
 
-              <div className="relative mb-6">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Cari nama trip, tujuan, atau tanggal..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 ios-card"
-                />
-              </div>
+              {searchQuery.trim() && (
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Cari nama trip, tujuan, atau tanggal..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              )}
 
               {loading ? (
                 <div className="text-center py-12">
