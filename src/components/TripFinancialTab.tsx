@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Plus, Trash2, ChevronDown } from "lucide-react";
+import { Plus, Trash2, ChevronDown, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatRupiah } from "@/lib/utils";
@@ -24,6 +24,14 @@ interface TripFinancialTabProps {
   tripId: string;
 }
 
+interface EditingItem {
+  id: string;
+  jenis: "pemasukan" | "pengeluaran";
+  keterangan: string;
+  jumlah: number;
+  cashback?: number | null;
+}
+
 export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
   const [items, setItems] = useState<FinancialItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -31,6 +39,7 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
   const [tripData, setTripData] = useState<any>(null);
   const [pemasukanOpen, setPemasukanOpen] = useState(false);
   const [pengeluaranOpen, setPengeluaranOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<EditingItem | undefined>();
   
   // Form state
   const [jenis, setJenis] = useState<"pemasukan" | "pengeluaran">("pengeluaran");
@@ -108,7 +117,7 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
         .select("*")
         .eq("trip_id", tripId)
         .eq("user_id", user.id)
-        .order("tanggal", { ascending: false });
+        .order("tanggal", { ascending: true });
 
       if (error) throw error;
       setItems(data || []);
@@ -131,30 +140,50 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
         return Number(formatted.replace(/\./g, "").replace(/,/g, ".")) || 0;
       };
 
-      const { error } = await supabase.from("keuangan").insert({
-        trip_id: tripId,
-        user_id: user.id,
-        jenis,
-        jumlah: unformatRupiah(jumlah),
-        keterangan,
-        cashback: hasCashback ? unformatRupiah(cashback) : null,
-        harga_satuan: useCalculator && hargaSatuan ? unformatRupiah(hargaSatuan) : null,
-        jumlah_item: useCalculator && jumlahItem ? Number(jumlahItem) : null,
-        tanggal: new Date().toISOString(),
-      });
+      if (editingItem) {
+        // Update existing item
+        const { error } = await supabase
+          .from("keuangan")
+          .update({
+            jenis,
+            jumlah: unformatRupiah(jumlah),
+            keterangan,
+            cashback: hasCashback ? unformatRupiah(cashback) : null,
+            harga_satuan: useCalculator && hargaSatuan ? unformatRupiah(hargaSatuan) : null,
+            jumlah_item: useCalculator && jumlahItem ? Number(jumlahItem) : null,
+          })
+          .eq("id", editingItem.id);
 
-      if (error) throw error;
+        if (error) throw error;
+        toast.success("Data keuangan berhasil diperbarui");
+      } else {
+        // Insert new item
+        const { error } = await supabase.from("keuangan").insert({
+          trip_id: tripId,
+          user_id: user.id,
+          jenis,
+          jumlah: unformatRupiah(jumlah),
+          keterangan,
+          cashback: hasCashback ? unformatRupiah(cashback) : null,
+          harga_satuan: useCalculator && hargaSatuan ? unformatRupiah(hargaSatuan) : null,
+          jumlah_item: useCalculator && jumlahItem ? Number(jumlahItem) : null,
+          tanggal: new Date().toISOString(),
+        });
 
-      toast.success("Data keuangan berhasil ditambahkan");
+        if (error) throw error;
+        toast.success("Data keuangan berhasil ditambahkan");
+      }
+
       resetForm();
       setDialogOpen(false);
     } catch (error: any) {
       console.error("Error:", error);
-      toast.error("Gagal menambahkan data keuangan");
+      toast.error(editingItem ? "Gagal memperbarui data keuangan" : "Gagal menambahkan data keuangan");
     }
   };
 
   const resetForm = () => {
+    setEditingItem(undefined);
     setJenis("pengeluaran");
     setKeterangan("");
     setJumlah("");
@@ -163,6 +192,17 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
     setHargaSatuan("");
     setJumlahItem("");
     setUseCalculator(false);
+  };
+
+  const handleEdit = (item: FinancialItem) => {
+    setEditingItem(item);
+    setJenis(item.jenis);
+    setKeterangan(item.keterangan);
+    setJumlah(item.jumlah.toLocaleString("id-ID"));
+    setHasCashback(!!item.cashback);
+    setCashback(item.cashback ? item.cashback.toLocaleString("id-ID") : "");
+    setUseCalculator(false);
+    setDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -195,7 +235,10 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Keuangan</h2>
         <Button
-          onClick={() => setDialogOpen(true)}
+          onClick={() => {
+            resetForm();
+            setDialogOpen(true);
+          }}
           className="gradient-primary text-white"
           size="sm"
         >
@@ -211,7 +254,10 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
       ) : items.length === 0 ? (
         <Card className="p-8 text-center">
           <p className="text-muted-foreground mb-4">Belum ada data keuangan</p>
-          <Button onClick={() => setDialogOpen(true)} className="gradient-primary text-white">
+          <Button onClick={() => {
+            resetForm();
+            setDialogOpen(true);
+          }} className="gradient-primary text-white">
             <Plus className="w-4 h-4 mr-2" />
             Tambah Data
           </Button>
@@ -264,7 +310,7 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
                           <tr>
                             <th className="text-left p-2 font-semibold">Keterangan</th>
                             <th className="text-right p-2 font-semibold">Jumlah</th>
-                            <th className="text-center p-2 font-semibold w-12"></th>
+                            <th className="text-center p-2 font-semibold w-20"></th>
                           </tr>
                         </thead>
                         <tbody>
@@ -280,14 +326,24 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
                                 )}
                               </td>
                               <td className="p-2 text-center">
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => handleDelete(item.id)}
-                                  className="h-8 w-8 text-destructive hover:text-destructive/80"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
+                                <div className="flex gap-1 justify-center">
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => handleEdit(item)}
+                                    className="h-8 w-8"
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => handleDelete(item.id)}
+                                    className="h-8 w-8 text-destructive hover:text-destructive/80"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
                               </td>
                             </tr>
                           ))}
@@ -323,7 +379,7 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
                           <tr>
                             <th className="text-left p-2 font-semibold">Keterangan</th>
                             <th className="text-right p-2 font-semibold">Jumlah</th>
-                            <th className="text-center p-2 font-semibold w-12"></th>
+                            <th className="text-center p-2 font-semibold w-20"></th>
                           </tr>
                         </thead>
                         <tbody>
@@ -339,14 +395,24 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
                                 )}
                               </td>
                               <td className="p-2 text-center">
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => handleDelete(item.id)}
-                                  className="h-8 w-8 text-destructive hover:text-destructive/80"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
+                                <div className="flex gap-1 justify-center">
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => handleEdit(item)}
+                                    className="h-8 w-8"
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => handleDelete(item.id)}
+                                    className="h-8 w-8 text-destructive hover:text-destructive/80"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
                               </td>
                             </tr>
                           ))}
@@ -386,10 +452,13 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
         </>
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => {
+        setDialogOpen(open);
+        if (!open) resetForm();
+      }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Tambah Data Keuangan</DialogTitle>
+            <DialogTitle>{editingItem ? "Edit Data Keuangan" : "Tambah Data Keuangan"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

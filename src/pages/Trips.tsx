@@ -3,17 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import AuthGuard from "@/components/AuthGuard";
 import BottomNav from "@/components/BottomNav";
-import DestinationDialog from "@/components/DestinationDialog";
 import { TripExpandableCard } from "@/components/TripExpandableCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Pencil, Trash2, Clock, DollarSign, MapPin } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { toast } from "sonner";
 
 interface Trip {
   id: string;
@@ -25,28 +21,15 @@ interface Trip {
   jumlah_penumpang?: number;
 }
 
-interface Destination {
-  id: string;
-  nama_destinasi: string;
-  deskripsi: string;
-  kategori: string;
-  lokasi: string;
-  durasi_standar: number;
-  estimasi_biaya: number;
-}
 
 const Trips = () => {
   const navigate = useNavigate();
   const [trips, setTrips] = useState<Trip[]>([]);
-  const [destinations, setDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedDestination, setSelectedDestination] = useState<Destination | undefined>();
 
   useEffect(() => {
     loadTrips();
-    loadDestinations();
 
     const tripsChannel = supabase
       .channel("trips-changes")
@@ -57,18 +40,8 @@ const Trips = () => {
       )
       .subscribe();
 
-    const destinationsChannel = supabase
-      .channel("destinations-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "destinations" },
-        () => loadDestinations()
-      )
-      .subscribe();
-
     return () => {
       supabase.removeChannel(tripsChannel);
-      supabase.removeChannel(destinationsChannel);
     };
   }, []);
 
@@ -92,74 +65,14 @@ const Trips = () => {
     }
   };
 
-  const loadDestinations = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
 
-      const { data, error } = await supabase
-        .from("destinations")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-      if (error) throw error;
-      setDestinations(data || []);
-    } catch (error: any) {
-      console.error("Error:", error);
-      toast.error("Gagal memuat destinasi");
-    }
-  };
+  const upcomingTrips = trips.filter((trip) => new Date(trip.tanggal) >= today);
+  const pastTrips = trips.filter((trip) => new Date(trip.tanggal) < today);
 
-  const handleEditDestination = (destination: Destination) => {
-    setSelectedDestination(destination);
-    setDialogOpen(true);
-  };
-
-  const handleAddDestination = () => {
-    setSelectedDestination(undefined);
-    setDialogOpen(true);
-  };
-
-  const handleDeleteDestination = async (id: string) => {
-    if (!confirm("Hapus destinasi ini?")) return;
-
-    try {
-      const { error } = await supabase
-        .from("destinations")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-      toast.success("Destinasi berhasil dihapus");
-      loadDestinations();
-    } catch (error: any) {
-      console.error("Error:", error);
-      toast.error("Gagal menghapus destinasi");
-    }
-  };
-
-  const getCategoryColor = (kategori: string) => {
-    const colors: Record<string, string> = {
-      wisata: "bg-blue-500/10 text-blue-500",
-      kuliner: "bg-orange-500/10 text-orange-500",
-      belanja: "bg-purple-500/10 text-purple-500",
-      sejarah: "bg-amber-500/10 text-amber-500",
-      hiburan: "bg-pink-500/10 text-pink-500",
-      religi: "bg-green-500/10 text-green-500",
-    };
-    return colors[kategori] || "bg-gray-500/10 text-gray-500";
-  };
-
-  const formatRupiah = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const filteredTrips = trips.filter((trip) => {
+  const filteredTrips = upcomingTrips.filter((trip) => {
     const query = searchQuery.toLowerCase();
     const matchName = trip.nama_trip.toLowerCase().includes(query);
     const matchTujuan = trip.tujuan.toLowerCase().includes(query);
@@ -169,25 +82,40 @@ const Trips = () => {
     return matchName || matchTujuan || matchDate;
   });
 
-  // Group trips by month and year
-  const groupedTrips = filteredTrips.reduce((acc, trip) => {
-    const monthYear = format(new Date(trip.tanggal), "MMMM yyyy", { locale: id });
-    if (!acc[monthYear]) {
-      acc[monthYear] = [];
-    }
-    acc[monthYear].push(trip);
-    return acc;
-  }, {} as Record<string, Trip[]>);
+  const filteredPastTrips = pastTrips.filter((trip) => {
+    const query = searchQuery.toLowerCase();
+    const matchName = trip.nama_trip.toLowerCase().includes(query);
+    const matchTujuan = trip.tujuan.toLowerCase().includes(query);
+    const matchDate = format(new Date(trip.tanggal), "dd MMMM yyyy", { locale: id })
+      .toLowerCase()
+      .includes(query);
+    return matchName || matchTujuan || matchDate;
+  });
 
-  // Group destinations by city (lokasi)
-  const groupedDestinations = destinations.reduce((acc, dest) => {
-    const city = dest.lokasi.split(',')[0].trim(); // Get first part before comma
-    if (!acc[city]) {
-      acc[city] = [];
-    }
-    acc[city].push(dest);
-    return acc;
-  }, {} as Record<string, Destination[]>);
+  // Group upcoming trips by month and year (oldest first)
+  const groupedTrips = filteredTrips
+    .sort((a, b) => new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime())
+    .reduce((acc, trip) => {
+      const monthYear = format(new Date(trip.tanggal), "MMMM yyyy", { locale: id });
+      if (!acc[monthYear]) {
+        acc[monthYear] = [];
+      }
+      acc[monthYear].push(trip);
+      return acc;
+    }, {} as Record<string, Trip[]>);
+
+  // Group past trips by month and year (newest first for reports)
+  const groupedPastTrips = filteredPastTrips
+    .sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime())
+    .reduce((acc, trip) => {
+      const monthYear = format(new Date(trip.tanggal), "MMMM yyyy", { locale: id });
+      if (!acc[monthYear]) {
+        acc[monthYear] = [];
+      }
+      acc[monthYear].push(trip);
+      return acc;
+    }, {} as Record<string, Trip[]>);
+
 
   return (
     <AuthGuard>
@@ -198,18 +126,21 @@ const Trips = () => {
           <Tabs defaultValue="trips" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="trips">Daftar Trip</TabsTrigger>
-              <TabsTrigger value="destinations">Destinasi Wisata</TabsTrigger>
+              <TabsTrigger value="reports">Reports</TabsTrigger>
             </TabsList>
 
             <TabsContent value="trips" className="mt-0">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2 flex-1">
-                  <h2 className="text-lg font-semibold">Trip Saya</h2>
+                  <h2 className="text-lg font-semibold">Trip Mendatang</h2>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => setSearchQuery(searchQuery ? "" : " ")}
+                    onClick={() => {
+                      setSearchQuery(prev => prev.trim() ? "" : " ");
+                      loadTrips();
+                    }}
                   >
                     <Search className="w-4 h-4" />
                   </Button>
@@ -280,88 +211,65 @@ const Trips = () => {
               )}
             </TabsContent>
 
-            <TabsContent value="destinations" className="mt-0">
+            <TabsContent value="reports" className="mt-0">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Destinasi Wisata</h2>
-                <Button
-                  className="gradient-primary text-white"
-                  onClick={handleAddDestination}
-                  size="sm"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Tambah
-                </Button>
+                <div className="flex items-center gap-2 flex-1">
+                  <h2 className="text-lg font-semibold">Trip Selesai</h2>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => {
+                      setSearchQuery(prev => prev.trim() ? "" : " ");
+                      loadTrips();
+                    }}
+                  >
+                    <Search className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
+
+              {searchQuery.trim() && (
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Cari nama trip, tujuan, atau tanggal..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              )}
 
               {loading ? (
                 <div className="text-center py-12">
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
                   <p className="mt-4 text-sm text-muted-foreground">Memuat...</p>
                 </div>
-              ) : destinations.length === 0 ? (
-                <Card className="p-8 text-center">
-                  <p className="text-muted-foreground mb-4">Belum ada destinasi wisata</p>
-                  <Button onClick={handleAddDestination} className="gradient-primary text-white">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Tambah Destinasi
-                  </Button>
-                </Card>
+              ) : filteredPastTrips.length === 0 && searchQuery ? (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">Tidak ada trip yang cocok dengan pencarian</p>
+                </div>
+              ) : pastTrips.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">Belum ada trip yang selesai</p>
+                </div>
               ) : (
                 <div className="space-y-6">
-                  {Object.entries(groupedDestinations).map(([city, cityDestinations]) => (
-                    <div key={city}>
-                      <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase flex items-center">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        {city}
+                  {Object.entries(groupedPastTrips).map(([monthYear, monthTrips]) => (
+                    <div key={monthYear}>
+                      <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase">
+                        {monthYear}
                       </h3>
                       <div className="space-y-3">
-                        {cityDestinations.map((dest) => (
-                          <Card key={dest.id} className="p-4">
-                            <div className="flex justify-between items-start mb-3">
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-lg mb-1">{dest.nama_destinasi}</h3>
-                                <Badge className={getCategoryColor(dest.kategori)}>
-                                  {dest.kategori.charAt(0).toUpperCase() + dest.kategori.slice(1)}
-                                </Badge>
-                              </div>
-                              <div className="flex gap-1">
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => handleEditDestination(dest)}
-                                >
-                                  <Pencil className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => handleDeleteDestination(dest.id)}
-                                  className="text-destructive hover:text-destructive"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </div>
-
-                            {dest.deskripsi && (
-                              <p className="text-sm text-muted-foreground mb-3">{dest.deskripsi}</p>
-                            )}
-
-                            <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                              <div className="flex items-center gap-1">
-                                <MapPin className="w-4 h-4" />
-                                {dest.lokasi}
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Clock className="w-4 h-4" />
-                                {dest.durasi_standar} menit
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <DollarSign className="w-4 h-4" />
-                                {formatRupiah(dest.estimasi_biaya)}
-                              </div>
-                            </div>
-                          </Card>
+                        {monthTrips.map((trip) => (
+                          <TripExpandableCard
+                            key={trip.id}
+                            trip={trip}
+                            onClick={() => navigate(`/trips/${trip.id}`)}
+                            onTripUpdated={loadTrips}
+                          />
                         ))}
                       </div>
                     </div>
@@ -371,13 +279,6 @@ const Trips = () => {
             </TabsContent>
           </Tabs>
         </div>
-
-        <DestinationDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          destination={selectedDestination}
-          onSuccess={loadDestinations}
-        />
 
         <BottomNav />
       </div>
