@@ -5,7 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Eye, EyeOff } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Plus, Trash2, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatRupiah } from "@/lib/utils";
@@ -27,8 +28,9 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
   const [items, setItems] = useState<FinancialItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [expandedCashback, setExpandedCashback] = useState<string | null>(null);
   const [tripData, setTripData] = useState<any>(null);
+  const [pemasukanOpen, setPemasukanOpen] = useState(false);
+  const [pengeluaranOpen, setPengeluaranOpen] = useState(false);
   
   // Form state
   const [jenis, setJenis] = useState<"pemasukan" | "pengeluaran">("pengeluaran");
@@ -176,23 +178,17 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
     }
   };
 
-  const totalPemasukan = items
-    .filter((i) => i.jenis === "pemasukan")
-    .reduce((sum, i) => sum + Number(i.jumlah), 0);
+  const pemasukanItems = items.filter((i) => i.jenis === "pemasukan");
+  const pengeluaranItems = items.filter((i) => i.jenis === "pengeluaran");
 
-  const totalPengeluaran = items
-    .filter((i) => i.jenis === "pengeluaran")
-    .reduce((sum, i) => sum + Number(i.jumlah), 0);
-
+  const totalPemasukan = pemasukanItems.reduce((sum, i) => sum + Number(i.jumlah), 0);
+  const totalPengeluaran = pengeluaranItems.reduce((sum, i) => sum + Number(i.jumlah), 0);
   const totalCashback = items.reduce((sum, i) => sum + (Number(i.cashback) || 0), 0);
   const saldo = totalPemasukan - totalPengeluaran + totalCashback;
   
   const budgetTotal = Number(tripData?.budget_estimasi) || 0;
   const dpDiterima = Number(tripData?.budget_dp) || 0;
   const sisaBudget = budgetTotal - totalPengeluaran;
-  
-  const pemasukanItems = items.filter((i) => i.jenis === "pemasukan");
-  const pengeluaranItems = items.filter((i) => i.jenis === "pengeluaran");
 
   return (
     <div className="space-y-4">
@@ -245,138 +241,123 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
             </Card>
           )}
 
-          {/* Split Pemasukan & Pengeluaran */}
-          <div className="grid md:grid-cols-2 gap-4 mb-4">
-            {/* Pemasukan Section */}
-            <div>
-              <h3 className="font-semibold mb-2 text-sm flex items-center">
-                <span className="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
-                Pemasukan
-              </h3>
-              <div className="space-y-2">
-                {pemasukanItems.length === 0 ? (
-                  <Card className="p-4 text-center text-sm text-muted-foreground">
-                    Belum ada pemasukan
-                  </Card>
-                ) : (
-                  pemasukanItems.map((item) => {
-                    const subtotal = item.cashback ? Number(item.jumlah) + Number(item.cashback) : Number(item.jumlah);
-                    const isExpanded = expandedCashback === item.id;
-                    
-                    return (
-                      <Card key={item.id} className="p-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              {item.cashback && (
+          {/* Collapsible Pemasukan */}
+          <Collapsible open={pemasukanOpen} onOpenChange={setPemasukanOpen}>
+            <Card className="overflow-hidden">
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-950/20 hover:bg-green-100 dark:hover:bg-green-950/30 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <ChevronDown className={`w-5 h-5 transition-transform ${pemasukanOpen ? 'transform rotate-180' : ''}`} />
+                    <h3 className="font-semibold text-base">Pemasukan</h3>
+                  </div>
+                  <span className="font-bold text-green-600">{formatRupiah(totalPemasukan)}</span>
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="p-4 space-y-2">
+                  {pemasukanItems.length === 0 ? (
+                    <p className="text-center text-sm text-muted-foreground py-4">Belum ada pemasukan</p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-muted/50">
+                          <tr>
+                            <th className="text-left p-2 font-semibold">Keterangan</th>
+                            <th className="text-right p-2 font-semibold">Jumlah</th>
+                            <th className="text-center p-2 font-semibold w-12"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {pemasukanItems.map((item) => (
+                            <tr key={item.id} className="border-b last:border-0">
+                              <td className="p-2">{item.keterangan}</td>
+                              <td className="p-2 text-right font-semibold text-green-600">
+                                {formatRupiah(Number(item.jumlah))}
+                                {item.cashback && (
+                                  <span className="text-xs text-blue-600 ml-1">
+                                    (+{formatRupiah(Number(item.cashback))})
+                                  </span>
+                                )}
+                              </td>
+                              <td className="p-2 text-center">
                                 <Button
-                                  size="sm"
+                                  size="icon"
                                   variant="ghost"
-                                  className="h-6 px-2 text-xs text-blue-600"
-                                  onClick={() => setExpandedCashback(isExpanded ? null : item.id)}
+                                  onClick={() => handleDelete(item.id)}
+                                  className="h-8 w-8 text-destructive hover:text-destructive/80"
                                 >
-                                  {isExpanded ? <EyeOff className="w-3 h-3 mr-1" /> : <Eye className="w-3 h-3 mr-1" />}
-                                  Cashback
+                                  <Trash2 className="w-4 h-4" />
                                 </Button>
-                              )}
-                            </div>
-                            <p className="text-sm mb-1">{item.keterangan}</p>
-                            <p className="text-sm font-semibold text-green-600">{formatRupiah(Number(item.jumlah))}</p>
-                            
-                            {item.cashback && isExpanded && (
-                              <div className="mt-2 pt-2 border-t space-y-1 text-xs">
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Cashback:</span>
-                                  <span className="text-blue-600 font-medium">{formatRupiah(Number(item.cashback))}</span>
-                                </div>
-                                <div className="flex justify-between font-semibold">
-                                  <span>Subtotal:</span>
-                                  <span className="text-green-600">{formatRupiah(subtotal)}</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleDelete(item.id)}
-                            className="h-8 w-8 text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </Card>
-                    );
-                  })
-                )}
-              </div>
-            </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
-            {/* Pengeluaran Section */}
-            <div>
-              <h3 className="font-semibold mb-2 text-sm flex items-center">
-                <span className="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
-                Pengeluaran
-              </h3>
-              <div className="space-y-2">
-                {pengeluaranItems.length === 0 ? (
-                  <Card className="p-4 text-center text-sm text-muted-foreground">
-                    Belum ada pengeluaran
-                  </Card>
-                ) : (
-                  pengeluaranItems.map((item) => {
-                    const subtotal = item.cashback ? Number(item.jumlah) + Number(item.cashback) : Number(item.jumlah);
-                    const isExpanded = expandedCashback === item.id;
-                    
-                    return (
-                      <Card key={item.id} className="p-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              {item.cashback && (
+          {/* Collapsible Pengeluaran */}
+          <Collapsible open={pengeluaranOpen} onOpenChange={setPengeluaranOpen}>
+            <Card className="overflow-hidden">
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between p-4 bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/30 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <ChevronDown className={`w-5 h-5 transition-transform ${pengeluaranOpen ? 'transform rotate-180' : ''}`} />
+                    <h3 className="font-semibold text-base">Pengeluaran</h3>
+                  </div>
+                  <span className="font-bold text-red-600">{formatRupiah(totalPengeluaran)}</span>
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="p-4 space-y-2">
+                  {pengeluaranItems.length === 0 ? (
+                    <p className="text-center text-sm text-muted-foreground py-4">Belum ada pengeluaran</p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-muted/50">
+                          <tr>
+                            <th className="text-left p-2 font-semibold">Keterangan</th>
+                            <th className="text-right p-2 font-semibold">Jumlah</th>
+                            <th className="text-center p-2 font-semibold w-12"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {pengeluaranItems.map((item) => (
+                            <tr key={item.id} className="border-b last:border-0">
+                              <td className="p-2">{item.keterangan}</td>
+                              <td className="p-2 text-right font-semibold text-red-600">
+                                {formatRupiah(Number(item.jumlah))}
+                                {item.cashback && (
+                                  <span className="text-xs text-blue-600 ml-1">
+                                    (+{formatRupiah(Number(item.cashback))})
+                                  </span>
+                                )}
+                              </td>
+                              <td className="p-2 text-center">
                                 <Button
-                                  size="sm"
+                                  size="icon"
                                   variant="ghost"
-                                  className="h-6 px-2 text-xs text-blue-600"
-                                  onClick={() => setExpandedCashback(isExpanded ? null : item.id)}
+                                  onClick={() => handleDelete(item.id)}
+                                  className="h-8 w-8 text-destructive hover:text-destructive/80"
                                 >
-                                  {isExpanded ? <EyeOff className="w-3 h-3 mr-1" /> : <Eye className="w-3 h-3 mr-1" />}
-                                  Cashback
+                                  <Trash2 className="w-4 h-4" />
                                 </Button>
-                              )}
-                            </div>
-                            <p className="text-sm mb-1">{item.keterangan}</p>
-                            <p className="text-sm font-semibold text-red-600">{formatRupiah(Number(item.jumlah))}</p>
-                            
-                            {item.cashback && isExpanded && (
-                              <div className="mt-2 pt-2 border-t space-y-1 text-xs">
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Cashback:</span>
-                                  <span className="text-blue-600 font-medium">{formatRupiah(Number(item.cashback))}</span>
-                                </div>
-                                <div className="flex justify-between font-semibold">
-                                  <span>Subtotal:</span>
-                                  <span className="text-red-600">{formatRupiah(subtotal)}</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleDelete(item.id)}
-                            className="h-8 w-8 text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </Card>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
           <Card className="p-4 bg-muted/50">
             <div className="space-y-2 text-sm">
