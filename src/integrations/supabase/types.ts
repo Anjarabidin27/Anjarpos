@@ -335,6 +335,7 @@ export type Database = {
       }
       trip_price_notes: {
         Row: {
+          catatan: string | null
           created_at: string
           id: string
           jumlah: number
@@ -343,6 +344,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          catatan?: string | null
           created_at?: string
           id?: string
           jumlah: number
@@ -351,6 +353,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          catatan?: string | null
           created_at?: string
           id?: string
           jumlah?: number
@@ -367,6 +370,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      trip_vehicles: {
+        Row: {
+          created_at: string
+          dp: number
+          harga_per_bus: number
+          id: string
+          jumlah_penumpang_per_bus: number
+          nama_po: string
+          trip_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dp?: number
+          harga_per_bus?: number
+          id?: string
+          jumlah_penumpang_per_bus?: number
+          nama_po: string
+          trip_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dp?: number
+          harga_per_bus?: number
+          id?: string
+          jumlah_penumpang_per_bus?: number
+          nama_po?: string
+          trip_id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       trips: {
         Row: {
