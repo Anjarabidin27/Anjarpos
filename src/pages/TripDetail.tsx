@@ -9,6 +9,7 @@ import { TripDocumentationTab } from "@/components/TripDocumentationTab";
 import { VehicleTab } from "@/components/VehicleTab";
 import NoteDialog from "@/components/NoteDialog";
 import { TripPriceNoteDialog } from "@/components/TripPriceNoteDialog";
+import { TripDestinationsCard } from "@/components/TripDestinationsCard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
@@ -256,6 +257,8 @@ const TripDetail = () => {
 
             {/* Tab 1: Acuan / Catatan Sebelum Keberangkatan */}
             <TabsContent value="acuan" className="space-y-4">
+              <TripDestinationsCard tripId={tripId!} tripName={trip.nama_trip} />
+              
               <Card className="overflow-hidden">
                 <Collapsible open={priceNotesExpanded} onOpenChange={setPriceNotesExpanded}>
                   <div className="p-4">
