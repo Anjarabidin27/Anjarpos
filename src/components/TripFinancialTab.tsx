@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -225,13 +225,25 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
     }
   };
 
-  const totalPemasukan = items.filter(i => i.jenis === "pemasukan").reduce((sum, i) => sum + Number(i.jumlah), 0);
-  const totalPengeluaran = items.filter(i => i.jenis === "pengeluaran").reduce((sum, i) => sum + Number(i.jumlah), 0);
-  const totalCashback = items.reduce((sum, i) => sum + (Number(i.cashback) || 0), 0);
-  const saldo = totalPemasukan - totalPengeluaran;
+  const totalPemasukan = useMemo(() => 
+    items.filter(i => i.jenis === "pemasukan").reduce((sum, i) => sum + Number(i.jumlah), 0),
+    [items]
+  );
   
+  const totalPengeluaran = useMemo(() =>
+    items.filter(i => i.jenis === "pengeluaran").reduce((sum, i) => sum + Number(i.jumlah), 0),
+    [items]
+  );
+  
+  const totalCashback = useMemo(() =>
+    items.reduce((sum, i) => sum + (Number(i.cashback) || 0), 0),
+    [items]
+  );
+  
+  const saldo = useMemo(() => totalPemasukan - totalPengeluaran, [totalPemasukan, totalPengeluaran]);
   const budgetTotal = Number(tripData?.budget_estimasi) || 0;
   const sisaBudget = budgetTotal - totalPengeluaran;
+  const totalSaldo = saldo + totalCashback;
 
   const toggleItem = (id: string) => {
     setExpandedItems(prev => {
@@ -389,35 +401,39 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
                 <span className="font-semibold text-red-600">{formatRupiah(totalPengeluaran)}</span>
               </div>
               
-              <Collapsible>
-                <div className="flex justify-between items-center font-bold pt-1.5 border-t text-sm">
-                  <span>Total Saldo:</span>
-                  <div className="flex items-center gap-2">
-                    <span className={saldo >= 0 ? "text-green-600" : "text-red-600"}>
-                      {formatRupiah(saldo)}
-                    </span>
-                    <CollapsibleTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-6 w-6">
-                        <ChevronDown className="w-4 h-4" />
-                      </Button>
-                    </CollapsibleTrigger>
+              <div className="border-t pt-1.5 space-y-1.5">
+                <div className="flex justify-between">
+                  <span>Sisa Saldo:</span>
+                  <span className={`font-semibold ${saldo >= 0 ? "text-green-600" : "text-red-600"}`}>
+                    {formatRupiah(saldo)}
+                  </span>
+                </div>
+                {totalCashback > 0 && (
+                  <div className="flex justify-between">
+                    <span>Cashback:</span>
+                    <span className="font-semibold text-blue-600">{formatRupiah(totalCashback)}</span>
                   </div>
+                )}
+              </div>
+              
+              <Collapsible>
+                <div className="border-t pt-1.5">
+                  <CollapsibleTrigger asChild>
+                    <button className="w-full flex justify-between items-center font-bold text-sm hover:opacity-80 transition-opacity">
+                      <span>Total Saldo:</span>
+                      <div className="flex items-center gap-2">
+                        <span className={totalSaldo >= 0 ? "text-green-600" : "text-red-600"}>
+                          {formatRupiah(totalSaldo)}
+                        </span>
+                        <ChevronDown className="w-4 h-4" />
+                      </div>
+                    </button>
+                  </CollapsibleTrigger>
                 </div>
                 
                 <CollapsibleContent>
-                  <div className="space-y-1.5 pt-2 mt-2 border-t">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Sisa Saldo:</span>
-                      <span className={`font-semibold ${saldo >= 0 ? "text-green-600" : "text-red-600"}`}>
-                        {formatRupiah(saldo)}
-                      </span>
-                    </div>
-                    {totalCashback > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Total Cashback:</span>
-                        <span className="font-semibold text-blue-600">{formatRupiah(totalCashback)}</span>
-                      </div>
-                    )}
+                  <div className="pt-2 text-xs text-muted-foreground text-center">
+                    <p>Sisa Saldo + Cashback</p>
                   </div>
                 </CollapsibleContent>
               </Collapsible>
