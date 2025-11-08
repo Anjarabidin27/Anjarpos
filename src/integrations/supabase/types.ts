@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      catering_notes: {
+        Row: {
+          created_at: string
+          harga_per_snack: number
+          id: string
+          nama_catering: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          harga_per_snack: number
+          id?: string
+          nama_catering: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          harga_per_snack?: number
+          id?: string
+          nama_catering?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       destinations: {
         Row: {
           created_at: string
@@ -53,15 +80,54 @@ export type Database = {
         }
         Relationships: []
       }
+      htm_notes: {
+        Row: {
+          created_at: string
+          destination_id: string | null
+          guru_dapat_cashback: boolean | null
+          harga_per_orang: number
+          id: string
+          nama_destinasi: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          destination_id?: string | null
+          guru_dapat_cashback?: boolean | null
+          harga_per_orang: number
+          id?: string
+          nama_destinasi: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          destination_id?: string | null
+          guru_dapat_cashback?: boolean | null
+          harga_per_orang?: number
+          id?: string
+          nama_destinasi?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "htm_notes_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       keuangan: {
         Row: {
           cashback: number | null
           created_at: string | null
-          harga_satuan: number | null
           id: string
           jenis: string
           jumlah: number
-          jumlah_item: number | null
           keterangan: string | null
           tanggal: string | null
           trip_id: string
@@ -70,11 +136,9 @@ export type Database = {
         Insert: {
           cashback?: number | null
           created_at?: string | null
-          harga_satuan?: number | null
           id?: string
           jenis: string
           jumlah: number
-          jumlah_item?: number | null
           keterangan?: string | null
           tanggal?: string | null
           trip_id: string
@@ -83,11 +147,9 @@ export type Database = {
         Update: {
           cashback?: number | null
           created_at?: string | null
-          harga_satuan?: number | null
           id?: string
           jenis?: string
           jumlah?: number
-          jumlah_item?: number | null
           keterangan?: string | null
           tanggal?: string | null
           trip_id?: string
@@ -261,24 +323,42 @@ export type Database = {
       }
       trip_destination_notes: {
         Row: {
-          catatan: string
           created_at: string
+          destinasi_1: string | null
+          destinasi_2: string | null
+          destinasi_3: string | null
+          destinasi_4: string | null
+          destinasi_5: string | null
+          destinasi_6: string | null
           id: string
           trip_id: string
+          updated_at: string
           user_id: string
         }
         Insert: {
-          catatan: string
           created_at?: string
+          destinasi_1?: string | null
+          destinasi_2?: string | null
+          destinasi_3?: string | null
+          destinasi_4?: string | null
+          destinasi_5?: string | null
+          destinasi_6?: string | null
           id?: string
           trip_id: string
+          updated_at?: string
           user_id: string
         }
         Update: {
-          catatan?: string
           created_at?: string
+          destinasi_1?: string | null
+          destinasi_2?: string | null
+          destinasi_3?: string | null
+          destinasi_4?: string | null
+          destinasi_5?: string | null
+          destinasi_6?: string | null
           id?: string
           trip_id?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -335,7 +415,6 @@ export type Database = {
       }
       trip_price_notes: {
         Row: {
-          catatan: string | null
           created_at: string
           id: string
           jumlah: number
@@ -344,7 +423,6 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          catatan?: string | null
           created_at?: string
           id?: string
           jumlah: number
@@ -353,7 +431,6 @@ export type Database = {
           user_id: string
         }
         Update: {
-          catatan?: string | null
           created_at?: string
           id?: string
           jumlah?: number
@@ -381,6 +458,7 @@ export type Database = {
           jumlah_penumpang_per_bus: number
           nama_po: string
           trip_id: string
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -392,6 +470,7 @@ export type Database = {
           jumlah_penumpang_per_bus?: number
           nama_po: string
           trip_id: string
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -403,6 +482,7 @@ export type Database = {
           jumlah_penumpang_per_bus?: number
           nama_po?: string
           trip_id?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

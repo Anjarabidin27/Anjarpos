@@ -388,18 +388,39 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
                 <span>Pengeluaran:</span>
                 <span className="font-semibold text-red-600">{formatRupiah(totalPengeluaran)}</span>
               </div>
-              <div className="flex justify-between font-bold pt-1.5 border-t text-sm">
-                <span>Saldo:</span>
-                <span className={saldo >= 0 ? "text-green-600" : "text-red-600"}>
-                  {formatRupiah(saldo)}
-                </span>
-              </div>
-              {totalCashback > 0 && (
-                <div className="flex justify-between pt-1.5 border-t">
-                  <span>Total Cashback:</span>
-                  <span className="font-semibold text-blue-600">{formatRupiah(totalCashback)}</span>
+              
+              <Collapsible>
+                <div className="flex justify-between items-center font-bold pt-1.5 border-t text-sm">
+                  <span>Total Saldo:</span>
+                  <div className="flex items-center gap-2">
+                    <span className={saldo >= 0 ? "text-green-600" : "text-red-600"}>
+                      {formatRupiah(saldo)}
+                    </span>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-6 w-6">
+                        <ChevronDown className="w-4 h-4" />
+                      </Button>
+                    </CollapsibleTrigger>
+                  </div>
                 </div>
-              )}
+                
+                <CollapsibleContent>
+                  <div className="space-y-1.5 pt-2 mt-2 border-t">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Sisa Saldo:</span>
+                      <span className={`font-semibold ${saldo >= 0 ? "text-green-600" : "text-red-600"}`}>
+                        {formatRupiah(saldo)}
+                      </span>
+                    </div>
+                    {totalCashback > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Total Cashback:</span>
+                        <span className="font-semibold text-blue-600">{formatRupiah(totalCashback)}</span>
+                      </div>
+                    )}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             </div>
           </Card>
         </>

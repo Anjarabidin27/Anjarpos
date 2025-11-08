@@ -326,23 +326,28 @@ export const VehicleTab = ({ tripId }: VehicleTabProps) => {
                   </Button>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <p className="text-muted-foreground text-xs">Harga</p>
-                  <p className="font-medium">{formatRupiah(vehicle.harga_per_bus)}</p>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="p-2 bg-muted/30 rounded">
+                  <p className="text-muted-foreground text-[10px]">Harga per Bus</p>
+                  <p className="font-semibold text-xs">{formatRupiah(vehicle.harga_per_bus)}</p>
                 </div>
-                <div>
-                  <p className="text-muted-foreground text-xs">DP</p>
-                  <p className="font-medium">{formatRupiah(vehicle.dp)}</p>
+                <div className="p-2 bg-muted/30 rounded">
+                  <p className="text-muted-foreground text-[10px]">Penumpang</p>
+                  <p className="font-semibold text-xs">{vehicle.jumlah_penumpang_per_bus} orang</p>
                 </div>
-                <div className="col-span-2">
-                  <p className="text-muted-foreground text-xs">Kapasitas</p>
-                  <p className="font-medium">{vehicle.jumlah_penumpang_per_bus} penumpang</p>
+                <div className="p-2 bg-muted/30 rounded">
+                  <p className="text-muted-foreground text-[10px]">DP</p>
+                  <p className="font-semibold text-xs">{formatRupiah(vehicle.dp)}</p>
                 </div>
-                {vehicle.cashback && (
-                  <div className="col-span-2">
-                    <p className="text-muted-foreground text-xs">Cashback</p>
-                    <p className="font-medium text-blue-600">{formatRupiah(vehicle.cashback)}</p>
+                {vehicle.cashback ? (
+                  <div className="p-2 bg-blue-50 dark:bg-blue-950/20 rounded">
+                    <p className="text-muted-foreground text-[10px]">Cashback</p>
+                    <p className="font-semibold text-xs text-blue-600">{formatRupiah(vehicle.cashback)}</p>
+                  </div>
+                ) : (
+                  <div className="p-2 bg-muted/30 rounded opacity-50">
+                    <p className="text-muted-foreground text-[10px]">Cashback</p>
+                    <p className="font-semibold text-xs">-</p>
                   </div>
                 )}
               </div>
