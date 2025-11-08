@@ -373,7 +373,6 @@ export type Database = {
       }
       trip_vehicles: {
         Row: {
-          cashback: number | null
           created_at: string
           dp: number
           harga_per_bus: number
@@ -384,7 +383,6 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          cashback?: number | null
           created_at?: string
           dp?: number
           harga_per_bus?: number
@@ -395,7 +393,6 @@ export type Database = {
           user_id: string
         }
         Update: {
-          cashback?: number | null
           created_at?: string
           dp?: number
           harga_per_bus?: number

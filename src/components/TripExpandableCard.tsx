@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { TripPriceNoteDialog } from "./TripPriceNoteDialog";
+import { TripDestinationNoteDialog } from "./TripDestinationNoteDialog";
 import { EditTripDialog } from "./EditTripDialog";
 import {
   AlertDialog,
@@ -24,6 +25,10 @@ interface PriceNote {
   id: string;
   keterangan: string;
   jumlah: number;
+}
+
+interface DestinationNote {
+  catatan: string;
 }
 
 interface Trip {
@@ -45,8 +50,10 @@ interface TripExpandableCardProps {
 export const TripExpandableCard = ({ trip, onClick, onTripUpdated }: TripExpandableCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [priceNotes, setPriceNotes] = useState<PriceNote[]>([]);
+  const [destinationNote, setDestinationNote] = useState<DestinationNote | null>(null);
   const [loading, setLoading] = useState(false);
   const [priceDialogOpen, setPriceDialogOpen] = useState(false);
+  const [destDialogOpen, setDestDialogOpen] = useState(false);
   const [editTripDialogOpen, setEditTripDialogOpen] = useState(false);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
   const [editingPriceNote, setEditingPriceNote] = useState<PriceNote | undefined>();
@@ -73,6 +80,17 @@ export const TripExpandableCard = ({ trip, onClick, onTripUpdated }: TripExpanda
 
       if (priceError) throw priceError;
       setPriceNotes(priceData || []);
+
+      // Load destination note
+      const { data: destData, error: destError } = await supabase
+        .from("trip_destination_notes")
+        .select("*")
+        .eq("trip_id", trip.id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (destError) throw destError;
+      setDestinationNote(destData);
     } catch (error: any) {
       console.error("Error loading notes:", error);
       toast.error("Gagal memuat catatan");
@@ -128,6 +146,10 @@ export const TripExpandableCard = ({ trip, onClick, onTripUpdated }: TripExpanda
     setPriceDialogOpen(true);
   };
 
+  const destinationList = destinationNote?.catatan
+    ? destinationNote.catatan.split('\n').filter(line => line.trim())
+    : [];
+
   return (
     <>
       <Card className="overflow-hidden animate-slide-up">
@@ -159,6 +181,36 @@ export const TripExpandableCard = ({ trip, onClick, onTripUpdated }: TripExpanda
 
             <CollapsibleContent>
               <div className="pt-4 space-y-4">
+                {/* Catatan Destinasi Section */}
+                <div className="border-t pt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-sm">Catatan Destinasi</h4>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDestDialogOpen(true);
+                      }}
+                      className="h-7 text-xs"
+                    >
+                      {destinationNote ? "Edit" : "Tambah"}
+                    </Button>
+                  </div>
+                  {destinationList.length > 0 ? (
+                    <div className="space-y-1">
+                      {destinationList.map((dest, idx) => (
+                        <div key={idx} className="text-sm flex items-start gap-2">
+                          <span className="text-muted-foreground">{idx + 1}.</span>
+                          <span>{dest}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Belum ada catatan destinasi</p>
+                  )}
+                </div>
+
                 {/* Catatan Harga Section */}
                 <div className="border-t pt-4">
                   <div className="flex items-center justify-between mb-2">
@@ -247,6 +299,13 @@ export const TripExpandableCard = ({ trip, onClick, onTripUpdated }: TripExpanda
         onOpenChange={setPriceDialogOpen}
         tripId={trip.id}
         note={editingPriceNote}
+        onSuccess={loadNotes}
+      />
+
+      <TripDestinationNoteDialog
+        open={destDialogOpen}
+        onOpenChange={setDestDialogOpen}
+        tripId={trip.id}
         onSuccess={loadNotes}
       />
 

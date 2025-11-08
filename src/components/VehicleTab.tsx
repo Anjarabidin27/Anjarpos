@@ -15,7 +15,6 @@ interface Vehicle {
   harga_per_bus: number;
   dp: number;
   jumlah_penumpang_per_bus: number;
-  cashback?: number;
 }
 
 interface VehicleTabProps {
@@ -32,7 +31,6 @@ export const VehicleTab = ({ tripId }: VehicleTabProps) => {
     harga_per_bus: "",
     dp: "",
     jumlah_penumpang_per_bus: "",
-    cashback: "",
   });
 
   useEffect(() => {
@@ -101,7 +99,6 @@ export const VehicleTab = ({ tripId }: VehicleTabProps) => {
         harga_per_bus: Number(formData.harga_per_bus.replace(/\./g, "").replace(/,/g, ".")) || 0,
         dp: Number(formData.dp.replace(/\./g, "").replace(/,/g, ".")) || 0,
         jumlah_penumpang_per_bus: Number(formData.jumlah_penumpang_per_bus) || 0,
-        cashback: formData.cashback ? Number(formData.cashback.replace(/\./g, "").replace(/,/g, ".")) : null,
       };
 
       if (editingVehicle) {
@@ -138,7 +135,6 @@ export const VehicleTab = ({ tripId }: VehicleTabProps) => {
       harga_per_bus: vehicle.harga_per_bus.toString(),
       dp: vehicle.dp.toString(),
       jumlah_penumpang_per_bus: vehicle.jumlah_penumpang_per_bus.toString(),
-      cashback: vehicle.cashback ? vehicle.cashback.toString() : "",
     });
     setDialogOpen(true);
   };
@@ -166,7 +162,6 @@ export const VehicleTab = ({ tripId }: VehicleTabProps) => {
       harga_per_bus: "",
       dp: "",
       jumlah_penumpang_per_bus: "",
-      cashback: "",
     });
     setEditingVehicle(null);
   };
@@ -237,14 +232,6 @@ export const VehicleTab = ({ tripId }: VehicleTabProps) => {
                   onChange={(e) => setFormData({ ...formData, jumlah_penumpang_per_bus: e.target.value })}
                   placeholder="Contoh: 50"
                   required
-                />
-              </div>
-              <div>
-                <Label>Cashback (opsional)</Label>
-                <RupiahInput
-                  label=""
-                  value={formData.cashback}
-                  onChange={(value) => setFormData({ ...formData, cashback: value })}
                 />
               </div>
               <div className="flex justify-end gap-2">
@@ -339,12 +326,6 @@ export const VehicleTab = ({ tripId }: VehicleTabProps) => {
                   <p className="text-muted-foreground text-xs">Kapasitas</p>
                   <p className="font-medium">{vehicle.jumlah_penumpang_per_bus} penumpang</p>
                 </div>
-                {vehicle.cashback && (
-                  <div className="col-span-2">
-                    <p className="text-muted-foreground text-xs">Cashback</p>
-                    <p className="font-medium text-blue-600">{formatRupiah(vehicle.cashback)}</p>
-                  </div>
-                )}
               </div>
             </Card>
           ))}

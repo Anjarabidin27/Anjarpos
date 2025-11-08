@@ -37,7 +37,7 @@ export const TripPriceNoteDialog = ({ open, onOpenChange, tripId, note, onSucces
     } else if (!note) {
       setKeterangan("");
       setJumlah("");
-      setCatatan("/ ");
+      setCatatan("");
     }
   }, [note, open]);
 

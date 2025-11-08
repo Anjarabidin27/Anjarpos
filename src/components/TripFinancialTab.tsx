@@ -228,7 +228,7 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
   const totalPemasukan = items.filter(i => i.jenis === "pemasukan").reduce((sum, i) => sum + Number(i.jumlah), 0);
   const totalPengeluaran = items.filter(i => i.jenis === "pengeluaran").reduce((sum, i) => sum + Number(i.jumlah), 0);
   const totalCashback = items.reduce((sum, i) => sum + (Number(i.cashback) || 0), 0);
-  const saldo = totalPemasukan - totalPengeluaran;
+  const saldo = totalPemasukan - totalPengeluaran + totalCashback;
   
   const budgetTotal = Number(tripData?.budget_estimasi) || 0;
   const sisaBudget = budgetTotal - totalPengeluaran;
@@ -388,18 +388,18 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
                 <span>Pengeluaran:</span>
                 <span className="font-semibold text-red-600">{formatRupiah(totalPengeluaran)}</span>
               </div>
+              {totalCashback > 0 && (
+                <div className="flex justify-between">
+                  <span>Cashback:</span>
+                  <span className="font-semibold text-blue-600">{formatRupiah(totalCashback)}</span>
+                </div>
+              )}
               <div className="flex justify-between font-bold pt-1.5 border-t text-sm">
                 <span>Saldo:</span>
                 <span className={saldo >= 0 ? "text-green-600" : "text-red-600"}>
                   {formatRupiah(saldo)}
                 </span>
               </div>
-              {totalCashback > 0 && (
-                <div className="flex justify-between pt-1.5 border-t">
-                  <span>Total Cashback:</span>
-                  <span className="font-semibold text-blue-600">{formatRupiah(totalCashback)}</span>
-                </div>
-              )}
             </div>
           </Card>
         </>
