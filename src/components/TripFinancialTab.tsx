@@ -303,7 +303,6 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
                   <tr>
                     <th className="text-left p-2 font-semibold">Keterangan</th>
                     <th className="text-right p-2 font-semibold whitespace-nowrap">Jumlah</th>
-                    <th className="text-center p-2 w-8"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -311,63 +310,67 @@ export const TripFinancialTab = ({ tripId }: TripFinancialTabProps) => {
                     const isExpanded = expandedItems.has(item.id);
                     const itemColor = item.jenis === "pemasukan" ? "text-green-600" : "text-red-600";
                     return (
-                      <tr key={item.id} className="border-b last:border-0">
-                        <td className="p-2">
-                          <div className="flex items-start gap-1.5">
-                            <span className="line-clamp-2">{item.keterangan}</span>
-                            {item.cashback && (
-                              <Eye className="w-3 h-3 text-blue-600 flex-shrink-0 mt-0.5" />
-                            )}
-                          </div>
-                        </td>
-                        <td className={`p-2 text-right font-semibold whitespace-nowrap ${itemColor}`}>
-                          {formatRupiah(Number(item.jumlah))}
-                        </td>
-                        <td className="p-2 text-center">
-                          <button
-                            onClick={() => toggleItem(item.id)}
-                            className="hover:bg-muted rounded p-1 transition-colors"
-                          >
-                            <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                          </button>
-                        </td>
-                        {isExpanded && (
-                          <td colSpan={3} className="p-0">
-                            <div className="bg-muted/30 p-2 space-y-1.5">
-                              {item.cashback && (
-                                <div className="flex justify-between text-xs">
-                                  <span className="text-muted-foreground">Cashback:</span>
-                                  <span className="text-blue-600 font-semibold">{formatRupiah(Number(item.cashback))}</span>
-                                </div>
-                              )}
-                              <div className="flex justify-between text-xs">
-                                <span className="text-muted-foreground">Waktu:</span>
-                                <span>{format(new Date(item.tanggal), "dd MMM yyyy, HH:mm", { locale: id })}</span>
+                      <>
+                        <tr key={item.id} className="border-b last:border-0">
+                          <td className="p-2">
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-start gap-1.5">
+                                <span className={`line-clamp-2 ${itemColor} font-medium`}>{item.keterangan}</span>
+                                {item.cashback && (
+                                  <Eye className="w-3 h-3 text-blue-600 flex-shrink-0 mt-0.5" />
+                                )}
                               </div>
-                              <div className="flex gap-1.5 justify-end pt-1.5">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleEdit(item)}
-                                  className="h-6 px-2 text-xs"
-                                >
-                                  <Pencil className="w-3 h-3 mr-1" />
-                                  Edit
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleDelete(item.id)}
-                                  className="h-6 px-2 text-xs text-destructive hover:text-destructive/80"
-                                >
-                                  <Trash2 className="w-3 h-3 mr-1" />
-                                  Hapus
-                                </Button>
-                              </div>
+                              <button
+                                onClick={() => toggleItem(item.id)}
+                                className="self-start hover:bg-muted rounded p-0.5 transition-colors"
+                              >
+                                <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                              </button>
                             </div>
                           </td>
+                          <td className={`p-2 text-right font-semibold whitespace-nowrap ${itemColor}`}>
+                            {formatRupiah(Number(item.jumlah))}
+                          </td>
+                        </tr>
+                        {isExpanded && (
+                          <tr key={`${item.id}-detail`} className="border-b last:border-0">
+                            <td colSpan={2} className="p-0">
+                              <div className="bg-muted/30 p-2 space-y-1.5">
+                                {item.cashback && (
+                                  <div className="flex justify-between text-xs">
+                                    <span className="text-muted-foreground">Cashback:</span>
+                                    <span className="text-blue-600 font-semibold">{formatRupiah(Number(item.cashback))}</span>
+                                  </div>
+                                )}
+                                <div className="flex justify-between text-xs">
+                                  <span className="text-muted-foreground">Waktu:</span>
+                                  <span>{format(new Date(item.tanggal), "dd MMM yyyy, HH:mm", { locale: id })}</span>
+                                </div>
+                                <div className="flex gap-1.5 justify-end pt-1.5">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleEdit(item)}
+                                    className="h-6 px-2 text-xs"
+                                  >
+                                    <Pencil className="w-3 h-3 mr-1" />
+                                    Edit
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleDelete(item.id)}
+                                    className="h-6 px-2 text-xs text-destructive hover:text-destructive/80"
+                                  >
+                                    <Trash2 className="w-3 h-3 mr-1" />
+                                    Hapus
+                                  </Button>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
                         )}
-                      </tr>
+                      </>
                     );
                   })}
                 </tbody>
