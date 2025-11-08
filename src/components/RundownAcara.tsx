@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Clock, Trash2, DollarSign } from "lucide-react";
+import { Plus, Clock, Trash2, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { RupiahInput } from "./RupiahInput";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -283,7 +283,7 @@ export const RundownAcara = ({ tripId }: RundownAcaraProps) => {
                         setShowTransactionDialog(true);
                       }}
                     >
-                      <DollarSign className="w-3 h-3" />
+                      <Pencil className="w-3 h-3" />
                     </Button>
                     <Button
                       size="sm"

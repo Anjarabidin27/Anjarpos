@@ -137,10 +137,7 @@ const Trips = () => {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => {
-                      setSearchQuery(prev => prev.trim() ? "" : " ");
-                      loadTrips();
-                    }}
+                    onClick={() => setSearchQuery(prev => prev.trim() ? "" : " ")}
                   >
                     <Search className="w-4 h-4" />
                   </Button>
@@ -159,11 +156,13 @@ const Trips = () => {
                 <div className="relative mb-4">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    type="text"
+                    type="search"
+                    inputMode="search"
                     placeholder="Cari nama trip, tujuan, atau tanggal..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
+                    autoFocus
                   />
                 </div>
               )}
@@ -219,10 +218,7 @@ const Trips = () => {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => {
-                      setSearchQuery(prev => prev.trim() ? "" : " ");
-                      loadTrips();
-                    }}
+                    onClick={() => setSearchQuery(prev => prev.trim() ? "" : " ")}
                   >
                     <Search className="w-4 h-4" />
                   </Button>
@@ -233,11 +229,13 @@ const Trips = () => {
                 <div className="relative mb-4">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    type="text"
+                    type="search"
+                    inputMode="search"
                     placeholder="Cari nama trip, tujuan, atau tanggal..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
+                    autoFocus
                   />
                 </div>
               )}

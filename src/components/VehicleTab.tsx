@@ -62,11 +62,23 @@ export const VehicleTab = ({ tripId }: VehicleTabProps) => {
         .eq("user_id", user.id)
         .order("created_at", { ascending: true });
 
-      if (error) throw error;
-      setVehicles(data || []);
+      if (error) {
+        // Handle missing table gracefully
+        if (error.code === "PGRST205" || error.code === "42P01") {
+          console.warn("Table trip_vehicles not found, skipping...");
+          setVehicles([]);
+        } else {
+          throw error;
+        }
+      } else {
+        setVehicles(data || []);
+      }
     } catch (error: any) {
       console.error("Error loading vehicles:", error);
-      toast.error("Gagal memuat data kendaraan");
+      // Don't show toast for missing table
+      if (error.code !== "PGRST205" && error.code !== "42P01") {
+        toast.error("Gagal memuat data kendaraan");
+      }
     } finally {
       setLoading(false);
     }
