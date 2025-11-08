@@ -9,7 +9,6 @@ import { TripDocumentationTab } from "@/components/TripDocumentationTab";
 import { VehicleTab } from "@/components/VehicleTab";
 import NoteDialog from "@/components/NoteDialog";
 import { TripPriceNoteDialog } from "@/components/TripPriceNoteDialog";
-import { TripDestinationNoteDialog } from "@/components/TripDestinationNoteDialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
@@ -48,24 +47,17 @@ interface PriceNote {
   catatan?: string;
 }
 
-interface DestinationNote {
-  catatan: string;
-}
-
 const TripDetail = () => {
   const { id: tripId } = useParams();
   const navigate = useNavigate();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
   const [priceNotes, setPriceNotes] = useState<PriceNote[]>([]);
-  const [destinationNote, setDestinationNote] = useState<DestinationNote | null>(null);
   const [loading, setLoading] = useState(true);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [priceNoteDialogOpen, setPriceNoteDialogOpen] = useState(false);
-  const [destNoteDialogOpen, setDestNoteDialogOpen] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [editingPriceNote, setEditingPriceNote] = useState<PriceNote | undefined>();
-  const [destNotesExpanded, setDestNotesExpanded] = useState(false);
   const [priceNotesExpanded, setPriceNotesExpanded] = useState(false);
 
   useEffect(() => {
@@ -83,11 +75,6 @@ const TripDetail = () => {
           "postgres_changes",
           { event: "*", schema: "public", table: "trip_price_notes", filter: `trip_id=eq.${tripId}` },
           () => loadPriceNotes()
-        )
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "trip_destination_notes", filter: `trip_id=eq.${tripId}` },
-          () => loadDestinationNote()
         )
         .subscribe();
 
@@ -112,7 +99,7 @@ const TripDetail = () => {
       if (tripError) throw tripError;
       setTrip(tripData);
 
-      await Promise.all([loadNotes(), loadPriceNotes(), loadDestinationNote()]);
+      await Promise.all([loadNotes(), loadPriceNotes()]);
     } catch (error: any) {
       console.error("Error:", error);
       toast.error("Gagal memuat data trip");
@@ -158,29 +145,6 @@ const TripDetail = () => {
       console.error("Error loading price notes:", error);
     }
   };
-
-  const loadDestinationNote = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !tripId) return;
-
-      const { data, error } = await supabase
-        .from("trip_destination_notes")
-        .select("*")
-        .eq("trip_id", tripId)
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (error) throw error;
-      setDestinationNote(data);
-    } catch (error: any) {
-      console.error("Error loading destination note:", error);
-    }
-  };
-
-  const destinationList = destinationNote?.catatan
-    ? destinationNote.catatan.split('\n').filter(line => line.trim())
-    : [];
 
   if (loading) {
     return (
@@ -292,47 +256,6 @@ const TripDetail = () => {
 
             {/* Tab 1: Acuan / Catatan Sebelum Keberangkatan */}
             <TabsContent value="acuan" className="space-y-4">
-              <Card className="overflow-hidden">
-                <Collapsible open={destNotesExpanded} onOpenChange={setDestNotesExpanded}>
-                  <div className="p-4">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-lg font-semibold">Catatan Destinasi</h2>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setDestNoteDialogOpen(true)}
-                        >
-                          {destinationNote ? "Edit" : "Tambah"}
-                        </Button>
-                        <CollapsibleTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8">
-                            {destNotesExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                          </Button>
-                        </CollapsibleTrigger>
-                      </div>
-                    </div>
-                    
-                    <CollapsibleContent>
-                      <div className="mt-3">
-                        {destinationList.length > 0 ? (
-                          <div className="space-y-2">
-                            {destinationList.map((dest, idx) => (
-                              <div key={idx} className="text-sm flex items-start gap-2 p-2 bg-muted/30 rounded">
-                                <span className="text-muted-foreground font-medium">{idx + 1}.</span>
-                                <span>{dest}</span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-muted-foreground text-sm text-center py-4">Belum ada catatan destinasi</p>
-                        )}
-                      </div>
-                    </CollapsibleContent>
-                  </div>
-                </Collapsible>
-              </Card>
-
               <Card className="overflow-hidden">
                 <Collapsible open={priceNotesExpanded} onOpenChange={setPriceNotesExpanded}>
                   <div className="p-4">
@@ -473,13 +396,6 @@ const TripDetail = () => {
           tripId={tripId!}
           note={editingPriceNote}
           onSuccess={loadPriceNotes}
-        />
-
-        <TripDestinationNoteDialog
-          open={destNoteDialogOpen}
-          onOpenChange={setDestNoteDialogOpen}
-          tripId={tripId!}
-          onSuccess={loadDestinationNote}
         />
 
         <BottomNav />

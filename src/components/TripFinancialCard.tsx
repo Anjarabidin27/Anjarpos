@@ -135,7 +135,7 @@ export const TripFinancialCard = ({ tripId, tripName }: TripFinancialCardProps) 
     .reduce((sum, n) => sum + Number(n.jumlah), 0);
 
   const totalCashback = notes.reduce((sum, n) => sum + (Number(n.cashback) || 0), 0);
-  const saldo = totalPemasukan - totalPengeluaran + totalCashback;
+  const saldo = totalPemasukan - totalPengeluaran;
 
   return (
     <Card className="p-4">
@@ -292,20 +292,20 @@ export const TripFinancialCard = ({ tripId, tripName }: TripFinancialCardProps) 
                 {formatRupiah(totalPengeluaran)}
               </span>
             </div>
-            {totalCashback > 0 && (
-              <div className="flex justify-between text-sm">
-                <span>Total Cashback:</span>
-                <span className="font-semibold text-blue-600">
-                  {formatRupiah(totalCashback)}
-                </span>
-              </div>
-            )}
             <div className="flex justify-between font-bold pt-2 border-t">
               <span>Saldo:</span>
               <span className={saldo >= 0 ? "text-green-600" : "text-red-600"}>
                 {formatRupiah(saldo)}
               </span>
             </div>
+            {totalCashback > 0 && (
+              <div className="flex justify-between text-sm pt-2 border-t">
+                <span>Total Cashback:</span>
+                <span className="font-semibold text-blue-600">
+                  {formatRupiah(totalCashback)}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       )}
